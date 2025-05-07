@@ -330,7 +330,7 @@ export default function Sidebar() {
         open={open}
         sx={{
           '& .MuiDrawer-paper': {
-            background: '#000000',
+            background: '#050608',
           },
         }}
       >

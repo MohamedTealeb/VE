@@ -45,6 +45,7 @@
 // }
 import React from 'react';
 import logo from '../../assets/WhatsApp Image 2025-05-06 at 12.31.39_3f99cae6.jpg';
+import { Link } from 'react-router';
 
 export default function Login() {
   return (
@@ -91,6 +92,7 @@ export default function Login() {
 
             
 
+            <Link to={'/'}>
             
             <button
               type="submit"
@@ -98,6 +100,7 @@ export default function Login() {
             >
               Login
             </button>
+            </Link>
           </form>
         </div>
       </div>
