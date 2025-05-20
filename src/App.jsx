@@ -6,6 +6,7 @@ import Login from "./Modules/Login/Login";
 import Order from "./Modules/Order/Order";
 import Users from "./Modules/Users/Users";
 import Category from "./Modules/Category/Category";
+import Register from "./Modules/Register/Register";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="product" element={<Product />} />
         <Route path="login" element={<Login />} />
+        <Route path="register" element={<Register />} />
         <Route path="orders" element={<Order />} />
         <Route path="users" element={<Users />} />
         <Route path="Category" element={<Category />} />

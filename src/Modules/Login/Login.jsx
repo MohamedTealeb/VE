@@ -1,53 +1,122 @@
-// import React from 'react'
-// import logo from '../../assets/WhatsApp Image 2025-05-06 at 12.31.39_3f99cae6.jpg'
+// import React, { useState } from 'react';
+// import logo from '../../assets/WhatsApp Image 2025-05-06 at 12.31.39_3f99cae6.jpg';
+// import { Link, useNavigate } from 'react-router';
+// import { useLocation } from 'react-router';
+// import { Visibility, VisibilityOff } from '@mui/icons-material';
+
+// import axios from 'axios';
+
 // export default function Login() {
-//   return<>
+//   const[errorMsg,setErrorMsg]=useState('');
+//   const navigate=useNavigate();
+//   const location=useLocation();
+//   const handleSubmit=async(e)=>{
+//     e.preventDefault();
+//     const formData = new FormData(e.target);
+//      const data = Object.fromEntries(formData.entries());
+//      try {
+//       const {data}=await axios.post(`${import.meta.env.VITE_BASEURL}/auth/login`,data)
+//      }
+//     catch (error) {
+//       console.error('Error submitting login:', error);
+//     }
   
-//   <div class="text-white flex justify-center bg-black items-center h-screen">
-  
-// <div class="w-1/2 h-screen  lg:block">
-//   <img src={logo} alt="Placeholder Image" class="object-cover w-full h-full"/>
-// </div>
 
-// <div class="lg:p-36 md:p-52 sm:20 p-8 w-full lg:w-1/2">
-//   <h1 class="text-2xl font-semibold mb-4">Login</h1>
-//   <form action="#" method="POST">
-  
-//     <div class="mb-4">
-//       <label for="username" class="block text-white">Username</label>
-//       <input type="text" id="username" name="username" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-blue-500" autocomplete="off"/>
-//     </div>
-    
-//     <div class="mb-4">
-//       <label for="password" class="block text-gray-600">Password</label>
-//       <input type="password" id="password" name="password" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-blue-500" autocomplete="off"/>
-//     </div>
- 
-//     <div class="mb-4 flex items-center">
-//       <input type="checkbox" id="remember" name="remember" class="text-blue-500"/>
-//       <label for="remember" class="text-gray-600 ml-2">Remember Me</label>
-//     </div>
-    
-//     <div class="mb-6 text-blue-500">
-//       <a href="#" class="hover:underline">Forgot Password?</a>
-//     </div>
-   
-//     <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full">Login</button>
-//   </form>
+//   }
+//   return (
+//     <div className="flex flex-col lg:flex-row h-screen bg-[#050608]">
+//       {/* الصورة في الأعلى على الهواتف، وفي الجانب الأيسر على الشاشات الكبيرة */}
+//       <div className="w-full lg:w-1/2 h-screen">
+//         <img
+//           src={logo}
+//           alt="Background Image"
+//           className="object-cover w-full h-full"
+//         />
+//       </div>
 
- 
-// </div>
-// </div>
-  
-  
-  
-//   </>
+//       {/* حاوية الفورم */}
+//       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-36">
+//         <div className="w-full max-w-md text-white">
+//           <h1 className="text-2xl font-semibold mb-4">Login</h1>
+//           <form action="#" method="POST">
+//             <div className="mb-4">
+//               <label htmlFor="username" className="block text-white">
+//                 Username
+//               </label>
+//               <input
+//                 type="text"
+//                 id="username"
+//                 name="username"
+//                 className="w-full border border-black text-black rounded-md bg-white py-2 px-3 focus:outline-none focus:border-black "
+//                 autoComplete="off"
+//               />
+//             </div>
+
+//             <div className="mb-4">
+//               <label htmlFor="password" className="block text-white">
+//                 Password
+//               </label>
+//               <input
+//                 type="password"
+//                 id="password"
+//                 name="password"
+//                 className="w-full border border-black text-black rounded-md bg-white py-2 px-3 focus:outline-none focus:border-black"
+//                 autoComplete="off"
+//               />
+//             </div>
+
+            
+
+//             <Link to={'/'}>
+            
+//             <button
+//               type="submit"
+//               className="bg-white hover:bg-black hover:text-white cursor-pointer  text-black font-semibold rounded-md py-2 px-4 w-full"
+//             >
+//               Login
+//             </button>
+//             </Link>
+//           </form>
+//            <p className="mt-4 text-center text-sm text-gray-400">
+//             Don't have an account?{" "}
+//             <Link to="/register" className="text-white underline hover:text-gray-300">
+//               Register
+//             </Link>
+//           </p>
+//         </div>
+//       </div>
+//     </div>
+//   );
 // }
-import React from 'react';
+import React, { useState } from 'react';
 import logo from '../../assets/WhatsApp Image 2025-05-06 at 12.31.39_3f99cae6.jpg';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
+import { useLocation } from 'react-router';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
+import axios from 'axios';
 
 export default function Login() {
+  const [errorMsg, setErrorMsg] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+    try {
+      const { data } = await axios.post(`${import.meta.env.VITE_BASEURL}/auth/login`, data);
+      // navigate logic here if needed
+    } catch (error) {
+      console.error('Error submitting login:', error);
+    }
+  };
+
+  const toggleShowPassword = () => {
+    setShowPassword((prev) => !prev);
+  };
+
   return (
     <div className="flex flex-col lg:flex-row h-screen bg-[#050608]">
       {/* الصورة في الأعلى على الهواتف، وفي الجانب الأيسر على الشاشات الكبيرة */}
@@ -63,7 +132,7 @@ export default function Login() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-36">
         <div className="w-full max-w-md text-white">
           <h1 className="text-2xl font-semibold mb-4">Login</h1>
-          <form action="#" method="POST">
+          <form onSubmit={handleSubmit} method="POST">
             <div className="mb-4">
               <label htmlFor="username" className="block text-white">
                 Username
@@ -72,36 +141,47 @@ export default function Login() {
                 type="text"
                 id="username"
                 name="username"
-                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-white bg-transparent"
+                className="w-full border border-black text-black rounded-md bg-white py-2 px-3 focus:outline-none focus:border-black"
                 autoComplete="off"
               />
             </div>
 
-            <div className="mb-4">
+            <div className="mb-4 relative">
               <label htmlFor="password" className="block text-white">
                 Password
               </label>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 id="password"
                 name="password"
-                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-whote bg-transparent"
+                className="w-full border border-black text-black rounded-md bg-white py-2 px-3 pr-10 focus:outline-none focus:border-black"
                 autoComplete="off"
               />
+              <button
+                type="button"
+                onClick={toggleShowPassword}
+                className="absolute cursor-pointer right-3 top-9 text-gray-700 hover:text-black focus:outline-none"
+                tabIndex={-1}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <VisibilityOff /> : <Visibility />}
+              </button>
             </div>
 
-            
-
-            <Link to={'/'}>
-            
             <button
               type="submit"
-              className="bg-white hover:bg-black hover:text-white cursor-pointer  text-black font-semibold rounded-md py-2 px-4 w-full"
+              className="bg-white hover:bg-black hover:text-white cursor-pointer text-black font-semibold rounded-md py-2 px-4 w-full"
             >
               Login
             </button>
-            </Link>
           </form>
+
+          <p className="mt-4 text-center text-sm text-gray-400">
+            Don't have an account?{' '}
+            <Link to="/register" className="text-white underline hover:text-gray-300">
+              Register
+            </Link>
+          </p>
         </div>
       </div>
     </div>
