@@ -1,0 +1,178 @@
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import {
+  getAllCategories,
+  getCategoryById,
+  createCategory,
+  updateCategory,
+  deleteCategory
+} from '../../../Apis/Categories/Categories';
+
+// Async thunks
+export const fetchCategories = createAsyncThunk(
+  'categories/fetchAll',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getAllCategories();
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const fetchCategoryById = createAsyncThunk(
+  'categories/fetchById',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await getCategoryById(id);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const addCategory = createAsyncThunk(
+  'categories/add',
+  async (formData, { rejectWithValue }) => {
+    try {
+      console.log('Adding category with formData:', formData);
+      const response = await createCategory(formData);
+      console.log('Add category response:', response);
+      return response;
+    } catch (error) {
+      console.error('Add category error:', error);
+      return rejectWithValue(error.response?.data || error);
+    }
+  }
+);
+
+export const editCategory = createAsyncThunk(
+  'categories/edit',
+  async ({ id, categoryData }, { rejectWithValue }) => {
+    try {
+      console.log('Editing category:', { id, categoryData });
+      const response = await updateCategory(id, categoryData);
+      console.log('Edit category response:', response);
+      return response;
+    } catch (error) {
+      console.error('Edit category error:', error);
+      return rejectWithValue(error.response?.data || error);
+    }
+  }
+);
+
+export const removeCategory = createAsyncThunk(
+  'categories/remove',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await deleteCategory(id);
+      return { id, ...response };
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error);
+    }
+  }
+);
+
+const initialState = {
+  categories: [],
+  currentCategory: null,
+  loading: false,
+  error: null,
+  success: false
+};
+
+const categoriesSlice = createSlice({
+  name: 'categories',
+  initialState,
+  reducers: {
+    clearError: (state) => {
+      state.error = null;
+    },
+    clearSuccess: (state) => {
+      state.success = false;
+    },
+    clearCurrentCategory: (state) => {
+      state.currentCategory = null;
+    }
+  },
+  extraReducers: (builder) => {
+    builder
+      // Fetch all categories
+      .addCase(fetchCategories.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCategories.fulfilled, (state, action) => {
+        state.loading = false;
+        state.categories = action.payload;
+        state.success = true;
+      })
+      .addCase(fetchCategories.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Fetch single category
+      .addCase(fetchCategoryById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCategoryById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentCategory = action.payload;
+        state.success = true;
+      })
+      .addCase(fetchCategoryById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Add category
+      .addCase(addCategory.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(addCategory.fulfilled, (state, action) => {
+        state.loading = false;
+        state.categories.push(action.payload);
+        state.success = true;
+      })
+      .addCase(addCategory.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Edit category
+      .addCase(editCategory.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(editCategory.fulfilled, (state, action) => {
+        state.loading = false;
+        const index = state.categories.findIndex(cat => cat.id === action.payload.id);
+        if (index !== -1) {
+          state.categories[index] = action.payload;
+        }
+        state.success = true;
+      })
+      .addCase(editCategory.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Remove category
+      .addCase(removeCategory.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(removeCategory.fulfilled, (state, action) => {
+        state.loading = false;
+        state.categories = state.categories.filter(cat => cat.id !== action.payload.id);
+        state.success = true;
+      })
+      .addCase(removeCategory.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+  }
+});
+
+export const { clearError, clearSuccess, clearCurrentCategory } = categoriesSlice.actions;
+export default categoriesSlice.reducer;

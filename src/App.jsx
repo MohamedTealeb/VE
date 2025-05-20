@@ -9,6 +9,8 @@ import Category from "./Modules/Category/Category";
 import Register from "./Modules/Register/Register";
 import ProtectedRoute from "./ProtectedRoute/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
+import ForgotPassword from './Modules/ForgotPassword/ForgotPassword';
+import ResetPassword from "./Modules/ResetPassword/ResetPassword";
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
         {/* Public Routes */}
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
+        <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="reset-password" element={<ResetPassword />} />
 
         {/* Protected Routes */}
         <Route path="/" element={<Home />} />
@@ -30,6 +34,14 @@ function App() {
           }
         />
         <Route path="product" element={<Product />} />
+        <Route
+          path="category"
+          element={
+            <ProtectedRoute>
+              <Category />
+            </ProtectedRoute>
+          }
+        />
         
 
         {/* Redirect any unknown routes to home */}

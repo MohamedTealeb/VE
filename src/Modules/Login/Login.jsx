@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import logo from '../../assets/WhatsApp Image 2025-05-06 at 12.31.39_3f99cae6.jpg';
-import { Link, useNavigate } from 'react-router';
-import { useLocation } from 'react-router';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import toast, { Toaster } from 'react-hot-toast';
@@ -23,12 +22,22 @@ export default function Login() {
     const data = Object.fromEntries(formData.entries());
 
     try {
-      await dispatch(loginUser({ email: data.username, password: data.password })).unwrap();
-        toast.success('Logged in successfully!', { duration: 5000 });
-setTimeout(() => {
-  navigate('/home');
-}, 3000);
-      } catch (err) {
+      console.log("Submitting login form...");
+      const result = await dispatch(loginUser({ email: data.username, password: data.password })).unwrap();
+      
+      // Check if token exists in localStorage
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error("No token found in localStorage after login");
+        toast.error("Login failed - no token received");
+        return;
+      }
+
+      toast.success('Logged in successfully!', { duration: 5000 });
+      console.log("Navigating to /home...");
+      navigate('/home');
+    } catch (err) {
+      console.error("Login error in component:", err);
       toast.error(err.message || 'Login failed');
     }
   };
