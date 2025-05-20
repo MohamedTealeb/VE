@@ -9,7 +9,7 @@ import {
 
 // Async thunks
 export const fetchCategories = createAsyncThunk(
-  'categories/fetchAll',
+  'categories/fetchCategories',
   async (_, { rejectWithValue }) => {
     try {
       const response = await getAllCategories();
@@ -20,11 +20,11 @@ export const fetchCategories = createAsyncThunk(
   }
 );
 
-export const fetchCategoryById = createAsyncThunk(
-  'categories/fetchById',
-  async (id, { rejectWithValue }) => {
+export const addCategory = createAsyncThunk(
+  'categories/addCategory',
+  async (categoryData, { rejectWithValue }) => {
     try {
-      const response = await getCategoryById(id);
+      const response = await createCategory(categoryData);
       return response;
     } catch (error) {
       return rejectWithValue(error);
@@ -32,51 +32,32 @@ export const fetchCategoryById = createAsyncThunk(
   }
 );
 
-export const addCategory = createAsyncThunk(
-  'categories/add',
-  async (formData, { rejectWithValue }) => {
-    try {
-      console.log('Adding category with formData:', formData);
-      const response = await createCategory(formData);
-      console.log('Add category response:', response);
-      return response;
-    } catch (error) {
-      console.error('Add category error:', error);
-      return rejectWithValue(error.response?.data || error);
-    }
-  }
-);
-
 export const editCategory = createAsyncThunk(
-  'categories/edit',
+  'categories/editCategory',
   async ({ id, categoryData }, { rejectWithValue }) => {
     try {
-      console.log('Editing category:', { id, categoryData });
       const response = await updateCategory(id, categoryData);
-      console.log('Edit category response:', response);
       return response;
     } catch (error) {
-      console.error('Edit category error:', error);
-      return rejectWithValue(error.response?.data || error);
+      return rejectWithValue(error);
     }
   }
 );
 
 export const removeCategory = createAsyncThunk(
-  'categories/remove',
+  'categories/removeCategory',
   async (id, { rejectWithValue }) => {
     try {
       const response = await deleteCategory(id);
       return { id, ...response };
     } catch (error) {
-      return rejectWithValue(error.response?.data || error);
+      return rejectWithValue(error);
     }
   }
 );
 
 const initialState = {
   categories: [],
-  currentCategory: null,
   loading: false,
   error: null,
   success: false
@@ -91,14 +72,11 @@ const categoriesSlice = createSlice({
     },
     clearSuccess: (state) => {
       state.success = false;
-    },
-    clearCurrentCategory: (state) => {
-      state.currentCategory = null;
     }
   },
   extraReducers: (builder) => {
     builder
-      // Fetch all categories
+      // Fetch Categories
       .addCase(fetchCategories.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -112,21 +90,7 @@ const categoriesSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      // Fetch single category
-      .addCase(fetchCategoryById.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchCategoryById.fulfilled, (state, action) => {
-        state.loading = false;
-        state.currentCategory = action.payload;
-        state.success = true;
-      })
-      .addCase(fetchCategoryById.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      // Add category
+      // Add Category
       .addCase(addCategory.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -140,7 +104,7 @@ const categoriesSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      // Edit category
+      // Edit Category
       .addCase(editCategory.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -157,7 +121,7 @@ const categoriesSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      // Remove category
+      // Remove Category
       .addCase(removeCategory.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -174,5 +138,5 @@ const categoriesSlice = createSlice({
   }
 });
 
-export const { clearError, clearSuccess, clearCurrentCategory } = categoriesSlice.actions;
+export const { clearError, clearSuccess } = categoriesSlice.actions;
 export default categoriesSlice.reducer;

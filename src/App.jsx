@@ -15,7 +15,7 @@ import ResetPassword from "./Modules/ResetPassword/ResetPassword";
 function App() {
   return (
     <>
-     <Toaster />
+      <Toaster />
       <Routes>
         {/* Public Routes */}
         <Route path="login" element={<Login />} />
@@ -24,7 +24,14 @@ function App() {
         <Route path="reset-password" element={<ResetPassword />} />
 
         {/* Protected Routes */}
-        <Route path="/" element={<Home />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="home"
           element={
@@ -33,7 +40,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="product" element={<Product />} />
+        <Route
+          path="product"
+          element={
+            <ProtectedRoute>
+              <Product />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="category"
           element={
@@ -42,10 +56,25 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+        <Route
+          path="users"
+          element={
+            <ProtectedRoute>
+              <Users />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="orders"
+          element={
+            <ProtectedRoute>
+              <Order />
+            </ProtectedRoute>
+          }
+        />
 
-        {/* Redirect any unknown routes to home */}
-        {/* <Route path='*' element={<Navigate to="login" replace />} /> */}
+        {/* Redirect any unknown routes to login */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </>
   );

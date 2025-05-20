@@ -35,15 +35,15 @@ export default function Category() {
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editId, setEditId] = React.useState(null);
-  const [formData, setFormData] = React.useState({
-    name: '',
-    image: null
-  });
+  const [formData, setFormData] = React.useState({ name: '', image: null });
   const [imagePreview, setImagePreview] = React.useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [categoryToDelete, setCategoryToDelete] = React.useState(null);
 
-  // Check token on component mount
+  // Base URL from env for image src
+  const baseImageUrl = import.meta.env.VITE_BASEURL;
+  const imageBaseUrl = import.meta.env.VITE_IMAGEURL;
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -51,27 +51,34 @@ export default function Category() {
       navigate('/login');
       return;
     }
-    console.log('Fetching categories...');
     dispatch(fetchCategories());
   }, [dispatch, navigate]);
 
-  // Handle success and error messages
   useEffect(() => {
+    let shouldShowToast = false;
+
     if (success) {
-      toast.success('Operation completed successfully!');
+      shouldShowToast = true;
+  
       dispatch(clearSuccess());
     }
     if (error) {
-      console.error('Category error:', error);
+      shouldShowToast = true;
       if (error.message === 'Access denied') {
         toast.error('You do not have permission to access this resource');
-        // Optionally redirect to home or login
-        // navigate('/login');
       } else {
         toast.error(error.message || 'An error occurred');
       }
       dispatch(clearError());
     }
+
+    // Cleanup function to clear states when component unmounts
+    return () => {
+      if (shouldShowToast) {
+        dispatch(clearSuccess());
+        dispatch(clearError());
+      }
+    };
   }, [success, error, dispatch]);
 
   const handleChangePage = (event, newPage) => setPage(newPage);
@@ -82,11 +89,8 @@ export default function Category() {
 
   const handleOpenDialog = (category = null) => {
     if (category) {
-      setFormData({
-        name: category.name,
-        image: null
-      });
-      setImagePreview(category.image);
+      setFormData({ name: category.name, image: null });
+      setImagePreview(`${imageBaseUrl}/${category.imageurl}`); // تأكد اسم الحقل في بياناتك
       setEditId(category.id);
     } else {
       setFormData({ name: '', image: null });
@@ -105,16 +109,14 @@ export default function Category() {
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setFormData(prev => ({ ...prev, image: file }));
-      // Create preview URL
-      const previewUrl = URL.createObjectURL(file);
-      setImagePreview(previewUrl);
+      setImagePreview(URL.createObjectURL(file));
     }
   };
 
@@ -129,31 +131,17 @@ export default function Category() {
 
       const formDataToSend = new FormData();
       formDataToSend.append('name', formData.name);
-      if (formData.image) {
-        formDataToSend.append('image', formData.image);
-      }
-
-      console.log('Sending form data:', {
-        name: formData.name,
-        hasImage: !!formData.image
-      });
+      if (formData.image) formDataToSend.append('image', formData.image);
 
       if (editId) {
-        await dispatch(editCategory({ 
-          id: editId, 
-          categoryData: formDataToSend 
-        })).unwrap();
+        await dispatch(editCategory({ id: editId, categoryData: formDataToSend })).unwrap();
       } else {
         await dispatch(addCategory(formDataToSend)).unwrap();
       }
       handleCloseDialog();
     } catch (error) {
       console.error('Save category error:', error);
-      if (error.message === 'Access denied') {
-        toast.error('You do not have permission to add/edit categories');
-      } else {
-        toast.error(error.message || 'Failed to save category');
-      }
+      toast.error(error.message || 'Failed to save category');
     }
   };
 
@@ -169,7 +157,6 @@ export default function Category() {
         toast.success('Category deleted successfully');
       }
     } catch (error) {
-      console.error('Delete category error:', error);
       toast.error(error.message || 'Failed to delete category');
     } finally {
       setDeleteDialogOpen(false);
@@ -182,45 +169,24 @@ export default function Category() {
     setCategoryToDelete(null);
   };
 
-  // Add function to handle image display
+  // دالة لجلب رابط الصورة الصحيح
   const getImageUrl = (image) => {
     if (!image) return '';
-    // If image is a URL string, return it directly
-    if (typeof image === 'string') return image;
-    // If image is a File object, create object URL
+    if (typeof image === 'string') {
+      return image.startsWith('http') ? image : `${imageBaseUrl}/${image}`;
+    }
     if (image instanceof File) return URL.createObjectURL(image);
-    // If image is an object with url property
     if (image.url) return image.url;
     return '';
   };
 
-  // Cleanup object URLs when component unmounts
-  useEffect(() => {
+  React.useEffect(() => {
     return () => {
-      // Cleanup any object URLs created for image previews
       if (imagePreview && imagePreview.startsWith('blob:')) {
         URL.revokeObjectURL(imagePreview);
       }
     };
   }, [imagePreview]);
-
-  // Add function to format date
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    try {
-      const date = new Date(dateString);
-      return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      }).format(date);
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return dateString;
-    }
-  };
 
   if (loading && !categories.length) {
     return (
@@ -241,10 +207,10 @@ export default function Category() {
               {error.message}
             </div>
           )}
-          
-          <Box display="flex" className="mr-19" justifyContent="flex-end" mb={2}>
+
+          <Box display="flex" justifyContent="flex-end" mb={2}>
             <Button
-              sx={{ backgroundColor: 'black' }}
+              sx={{ backgroundColor: 'black',marginRight:'30px' }}
               className="text-white"
               variant="contained"
               onClick={() => handleOpenDialog()}
@@ -258,7 +224,7 @@ export default function Category() {
             <Table stickyHeader size="small" aria-label="sticky table">
               <TableHead>
                 <TableRow>
-                  {columns.map((column) => (
+                  {columns.map(column => (
                     <TableCell key={column.id} align={column.align || 'left'}>
                       {column.label}
                     </TableCell>
@@ -268,37 +234,29 @@ export default function Category() {
               <TableBody>
                 {categories
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((category) => (
+                  .map(category => (
                     <TableRow hover tabIndex={-1} key={category.id}>
-                      {columns.map((column) => {
+                      {columns.map(column => {
                         if (column.id === 'actions') {
                           return (
                             <TableCell key={column.id}>
-                              <IconButton
-                                color="primary"
-                                onClick={() => handleOpenDialog(category)}
-                                size="small"
-                              >
+                              <IconButton color="primary" onClick={() => handleOpenDialog(category)} size="small">
                                 <EditIcon />
                               </IconButton>
-                              <IconButton
-                                color="error"
-                                onClick={() => handleDeleteClick(category)}
-                                size="small"
-                              >
+                              <IconButton color="error" onClick={() => handleDeleteClick(category)} size="small">
                                 <DeleteIcon />
                               </IconButton>
                             </TableCell>
                           );
                         }
                         if (column.id === 'image') {
-                          const imageUrl = getImageUrl(category.image);
+                          const imgSrc = getImageUrl(category.image); // أو category.image حسب اسم الحقل
                           return (
                             <TableCell key={column.id} align={column.align || 'left'}>
-                              {imageUrl ? (
+                              {imgSrc ? (
                                 <Box
                                   component="img"
-                                  src={imageUrl}
+                                  src={imgSrc}
                                   alt={category.name}
                                   sx={{
                                     width: 50,
@@ -307,15 +265,15 @@ export default function Category() {
                                     borderRadius: 1,
                                     border: '1px solid #ddd'
                                   }}
-                                  onError={(e) => {
+                                  onError={e => {
                                     e.target.onerror = null;
-                                    e.target.src = 'https://via.placeholder.com/50';
+                                    e.target.src = '/default-image.png';
                                   }}
                                 />
                               ) : (
                                 <Box
                                   component="img"
-                                  src="https://via.placeholder.com/50"
+                                  src="/default-image.png"
                                   alt="No image"
                                   sx={{
                                     width: 50,
@@ -340,6 +298,7 @@ export default function Category() {
                   ))}
               </TableBody>
             </Table>
+
           </TableContainer>
 
           <TablePagination
@@ -353,99 +312,49 @@ export default function Category() {
           />
         </Paper>
 
-        <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+        <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
           <DialogTitle>{editId ? 'Edit Category' : 'Add Category'}</DialogTitle>
           <DialogContent>
             <TextField
-              margin="dense"
-              name="name"
-              label="Name"
-              type="text"
               fullWidth
+              margin="normal"
+              label="Name"
+              name="name"
               value={formData.name}
               onChange={handleFormChange}
-              variant="outlined"
-              required
-              error={error && error.field === 'name'}
-              helperText={error && error.field === 'name' ? error.message : ''}
             />
-            <Box mt={2}>
-              <input
-                accept="image/*"
-                type="file"
-                id="image-upload"
-                onChange={handleImageChange}
-                style={{ display: 'none' }}
-              />
-              <label htmlFor="image-upload">
-                <Button
-                  variant="outlined"
-                  component="span"
-                  fullWidth
-                  sx={{ mb: 2 }}
-                >
-                  Upload Image
-                </Button>
-              </label>
-            </Box>
+            <Button variant="contained" component="label" sx={{ mt: 2 }}>
+              Upload Image
+              <input type="file" hidden onChange={handleImageChange} accept="image/*" />
+            </Button>
             {imagePreview && (
-              <Box mt={2} display="flex" justifyContent="center">
-                <Box
-                  component="img"
-                  src={imagePreview}
-                  alt="Preview"
-                  sx={{
-                    maxWidth: '200px',
-                    maxHeight: '200px',
-                    objectFit: 'contain',
-                    borderRadius: 1,
-                    border: '1px solid #ddd'
-                  }}
-                />
-              </Box>
+              <Box
+                component="img"
+                src={imagePreview}
+                alt="Preview"
+                sx={{ width: 150, height: 150, mt: 2, objectFit: 'cover', borderRadius: 1 }}
+              />
             )}
           </DialogContent>
           <DialogActions>
-            <Button sx={{ color: 'black' }} onClick={handleCloseDialog}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              sx={{ backgroundColor: 'black' }}
-              className="text-white"
-              variant="contained"
-              disabled={loading}
-            >
+            <Button onClick={handleCloseDialog}>Cancel</Button>
+            <Button onClick={handleSave} variant="contained" disabled={loading}>
               {loading ? 'Saving...' : 'Save'}
             </Button>
           </DialogActions>
         </Dialog>
 
-        <Dialog
-          open={deleteDialogOpen}
-          onClose={handleDeleteCancel}
-          aria-labelledby="delete-dialog-title"
-          aria-describedby="delete-dialog-description"
-        >
-          <DialogTitle id="delete-dialog-title">
-            Delete Category
-          </DialogTitle>
+        <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
+          <DialogTitle>Confirm Delete</DialogTitle>
           <DialogContent>
-            <DialogContentText id="delete-dialog-description">
-              Are you sure you want to delete the category "{categoryToDelete?.name}"? This action cannot be undone.
+            <DialogContentText>
+              Are you sure you want to delete category "{categoryToDelete?.name}"?
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleDeleteCancel} color="primary">
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleDeleteConfirm} 
-              color="error" 
-              variant="contained"
-              disabled={loading}
-            >
-              {loading ? 'Deleting...' : 'Delete'}
+            <Button onClick={handleDeleteCancel}>Cancel</Button>
+            <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+              Delete
             </Button>
           </DialogActions>
         </Dialog>

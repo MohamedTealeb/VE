@@ -5,8 +5,6 @@ export const registerUser = createAsyncThunk(
   "auth/registerUser",
   async ({ firstName, lastName, email, phoneNumber, password }, { rejectWithValue }) => {
     try {
-      console.log("Attempting registration with:", { email, firstName, lastName });
-      
       const response = await axios.post(
         `${import.meta.env.VITE_BASEURL}/auth/register`,
         {
@@ -18,14 +16,10 @@ export const registerUser = createAsyncThunk(
         }
       );
 
-      console.log("Registration response:", response.data);
-
-      // Check if token exists in response
       const token = response.data.token || response.data.data?.token;
       
       if (token) {
         localStorage.setItem("token", token);
-        console.log("Token stored in localStorage");
       }
 
       return {
@@ -34,7 +28,6 @@ export const registerUser = createAsyncThunk(
       };
       
     } catch (error) {
-      console.error("Registration error:", error.response?.data || error.message);
       return rejectWithValue(
         error.response?.data?.message || 
         error.response?.data || 
