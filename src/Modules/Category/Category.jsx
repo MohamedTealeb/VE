@@ -23,7 +23,6 @@ import {
 const columns = [
   { id: 'name', label: 'Name', minWidth: 170 },
   { id: 'image', label: 'Image', minWidth: 200 },
-  { id: 'createdAt', label: 'Created At', minWidth: 170 },
   { id: 'actions', label: 'Actions', minWidth: 100 },
 ];
 
@@ -204,6 +203,24 @@ export default function Category() {
       }
     };
   }, [imagePreview]);
+
+  // Add function to format date
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateString;
+    }
+  };
 
   if (loading && !categories.length) {
     return (
