@@ -2,7 +2,7 @@ import * as React from 'react';
 import {
   Paper, Table, TableContainer, TableHead, TableBody, TableRow, TableCell,
   TablePagination, IconButton, CircularProgress, DialogContentText, Dialog,
-  DialogTitle, DialogContent, DialogActions, Button
+  DialogTitle, DialogContent, DialogActions, Button, Select, MenuItem, FormControl, InputLabel
 } from '@mui/material';
 import Sidebar from '../../Component/Shared/Sidebar';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -13,8 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchUsers, removeUser } from '../../redux/slice/UsersSlice/Users';
 
 const columns = [
-  { id: 'firstName', label: 'First Name', minWidth: 120 },
-  { id: 'lastName', label: 'Last Name', minWidth: 120 },
+  { id: 'fullName', label: 'Full Name', minWidth: 170 },
   { id: 'email', label: 'Email', minWidth: 170 },
   { id: 'phoneNumber', label: 'Phone Number', minWidth: 130 },
   { id: 'role', label: 'Role', minWidth: 100 },
@@ -29,6 +28,7 @@ export default function Users() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [roleFilter, setRoleFilter] = useState('all');
   const { users = { data: [], total: 0 }, loading, error } = useSelector((state) => state.users);
 
   useEffect(() => {
@@ -116,7 +116,12 @@ export default function Users() {
     );
   }
 
-  const displayUsers = users.data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const filteredUsers = users.data.filter(user => {
+    if (roleFilter === 'all') return true;
+    return user.role?.toLowerCase() === roleFilter.toLowerCase();
+  });
+
+  const displayUsers = filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
     <>
@@ -124,6 +129,21 @@ export default function Users() {
       <div className="overflow-hidden flex flex-col">
         <Sidebar />
         <Paper sx={{ width: '100%', mt: '90px', ml: '40px', p: 2 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px',marginRight:'30px' }}>
+            <FormControl sx={{ minWidth: 200 }}>
+              <InputLabel id="role-filter-label">Filter by Role</InputLabel>
+              <Select
+                labelId="role-filter-label"
+                value={roleFilter}
+                label="Filter by Role"
+                onChange={(e) => setRoleFilter(e.target.value)}
+              >
+                <MenuItem value="all">All Roles</MenuItem>
+                <MenuItem value="admin">Admin</MenuItem>
+                <MenuItem value="user">User</MenuItem>
+              </Select>
+            </FormControl>
+          </div>
           <TableContainer sx={{ maxHeight: 600 }}>
             <Table stickyHeader size="small" aria-label="sticky table">
               <TableHead>
@@ -156,6 +176,13 @@ export default function Users() {
                         return (
                           <TableCell key={column.id} align={column.align || 'left'}>
                             {formatDate(user[column.id])}
+                          </TableCell>
+                        );
+                      }
+                      if (column.id === 'fullName') {
+                        return (
+                          <TableCell key={column.id} align={column.align || 'left'}>
+                            {`${user.firstName} ${user.lastName}`}
                           </TableCell>
                         );
                       }
