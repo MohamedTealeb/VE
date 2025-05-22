@@ -1,5 +1,6 @@
 import React from "react";
-import { Route, Routes, Navigate } from "react-router-dom";
+import { Route, Routes, Navigate, useLocation } from "react-router-dom";
+import Sidebar from "./Component/Shared/Sidebar";
 import Home from "./Modules/Home/Home";
 import Product from "./Modules/Product/Product";
 import Login from "./Modules/Login/Login";
@@ -10,66 +11,73 @@ import ProtectedRoute from "./ProtectedRoute/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 
 function App() {
+  const location = useLocation();
+  const isLogin = location.pathname === "/login";
   return (
     <>
       <Toaster />
-      <Routes>
-        {/* Public Routes */}
-        <Route path="login" element={<Login />} />
+      <div style={{ display: "flex" }}>
+        {!isLogin && <Sidebar />}
+        <div style={{ flex: 1 }}>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="login" element={<Login />} />
 
-        {/* Protected Routes */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="home"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="product"
-          element={
-            <ProtectedRoute>
-              <Product />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="category"
-          element={
-            <ProtectedRoute>
-              <Category />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="users"
-          element={
-            <ProtectedRoute>
-              <Users />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="orders"
-          element={
-            <ProtectedRoute>
-              <Order />
-            </ProtectedRoute>
-          }
-        />
+            {/* Protected Routes */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="home"
+              element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="product"
+              element={
+                <ProtectedRoute>
+                  <Product />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="category"
+              element={
+                <ProtectedRoute>
+                  <Category />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="users"
+              element={
+                <ProtectedRoute>
+                  <Users />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="orders"
+              element={
+                <ProtectedRoute>
+                  <Order />
+                </ProtectedRoute>
+              }
+            />
 
-        {/* Redirect any unknown routes to login */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+            {/* Redirect any unknown routes to login */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </div>
+      </div>
     </>
   );
 }

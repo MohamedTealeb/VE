@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import { Box, CircularProgress } from '@mui/material';
-import Sidebar from '../../Component/Shared/Sidebar';
+import { Box, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUsers } from '../../redux/slice/UsersSlice/Users';
 // import { fetchOrders } from '../../redux/slice/OrdersSlice/Orders';
@@ -9,6 +8,9 @@ const drawerWidth = 240;
 
 export default function Home() {
   const dispatch = useDispatch();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const { users = { data: [] }, loading: usersLoading } = useSelector((state) => state.users);
   // const { orders = { data: [] }, loading: ordersLoading } = useSelector((state) => state.orders);
   const open = true;
@@ -62,45 +64,75 @@ export default function Home() {
 
   return (
     <>
-      <Sidebar />
       <Box
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: isMobile ? 1 : isTablet ? 2 : 3,
           transition: 'margin-left 225ms cubic-bezier(0.0, 0, 0.2, 1) 0ms',
-          marginLeft: open ? `${drawerWidth}px` : `calc(8 * 7px + 1px)`,
-          marginTop: '64px',
-          display: 'block',
+          marginLeft: open ? (isMobile ? 0 : `${drawerWidth}px`) : `calc(8 * 7px + 1px)`,
+          marginTop: isMobile ? '56px' : '64px',
+          display: 'flex',
+          alignItems: isMobile ? 'center' : 'flex-start',
+          justifyContent: isMobile ? 'center' : 'flex-start',
+          minHeight: isMobile ? 'calc(100vh - 56px)' : 'auto',
         }}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2  lg:grid-cols-3 gap-6">
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile
+              ? '1fr'
+              : isTablet
+              ? '1fr 1fr'
+              : '1fr 1fr 1fr',
+            gap: isMobile ? '32px' : isTablet ? '24px' : '32px',
+            width: isMobile ? '100%' : 'auto',
+            maxWidth: isMobile ? 500 : 'none',
+            justifyItems: 'center',
+          }}
+        >
           {stats.map((item, index) => (
             <div
               key={index}
-              className={`w-full rounded-xl cursor-pointer shadow-lg p-10 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl ${item.color}`}
+              className={`w-full  rounded-xl cursor-pointer shadow-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl ${item.color}`}
               style={{
-                minHeight: '180px',
-                border: '2px solid black'
+                minHeight: isMobile ? '260px' : '200px',
+                maxWidth: isMobile ? '90vw' : 400,
+                width: isMobile ? '90vw' : '100%',
+                border: '2px solid black',
+                padding: isMobile ? '40px 20px' : '48px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: isMobile ? '28px' : '20px',
               }}
             >
-              <div className="flex flex-col cursor-pointer items-center justify-center space-y-4">
-                <svg
-                  className="w-12 h-12 text-white"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
+              <svg
+                className="w-12 h-12 text-white"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+                style={{ width: isMobile ? 72 : 56, height: isMobile ? 72 : 56 }}
+              >
+                {item.icon}
+              </svg>
+              <h3
+                className="text-xl font-semibold text-white"
+                style={{ fontSize: isMobile ? '2rem' : '1.5rem' }}
+              >
+                {item.title}
+              </h3>
+              {isLoading ? (
+                <CircularProgress size={isMobile ? 36 : 28} className="text-white" />
+              ) : (
+                <p
+                  className="text-2xl font-bold text-white"
+                  style={{ fontSize: isMobile ? '2.5rem' : '2rem' }}
                 >
-                  {item.icon}
-                </svg>
-                <h3 className="text-xl font-semibold text-white">{item.title}</h3>
-                {isLoading ? (
-                  <CircularProgress size={24} className="text-white" />
-                ) : (
-                  <p className="text-2xl font-bold text-white">
-                    {item.value}
-                  </p>
-                )}
-              </div>
+                  {item.value}
+                </p>
+              )}
             </div>
           ))}
         </div>

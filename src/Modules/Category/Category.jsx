@@ -4,9 +4,6 @@ import {
   TablePagination, Button, Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, IconButton, Box, CircularProgress, DialogContentText
 } from '@mui/material';
-import Sidebar from '../../Component/Shared/Sidebar';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
@@ -200,7 +197,6 @@ export default function Category() {
     <>
       <Toaster />
       <div className="overflow-hidden flex flex-col">
-        <Sidebar />
         <Paper sx={{ width: '100%', mt: '90px', ml: '40px', p: 2 }}>
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">

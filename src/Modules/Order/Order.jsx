@@ -4,7 +4,6 @@ import {
   TablePagination, Button, Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, IconButton, Box, CircularProgress, DialogContentText, Chip
 } from '@mui/material';
-import Sidebar from '../../Component/Shared/Sidebar';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
@@ -86,7 +85,6 @@ export default function Order() {
     <>
       <Toaster />
       <div className="overflow-hidden flex flex-col">
-        <Sidebar />
         <Paper sx={{ width: '100%', mt: '90px', ml: '40px', p: 2 }}>
           <TableContainer sx={{ maxHeight: 600 }}>
             <Table stickyHeader size="small" aria-label="sticky table">

@@ -5,7 +5,6 @@ import {
   DialogTitle, DialogContent, DialogActions, Button, Select, MenuItem, FormControl, InputLabel,
   TextField
 } from '@mui/material';
-import Sidebar from '../../Component/Shared/Sidebar';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { useDispatch, useSelector } from 'react-redux';
@@ -175,7 +174,6 @@ export default function Users() {
     <>
       <Toaster />
       <div className="overflow-hidden flex flex-col">
-        <Sidebar />
         <Paper sx={{ width: '100%', mt: '90px', ml: '40px', p: 2 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', marginLeft: '20px' }}>
             <FormControl sx={{ minWidth: 200 }}>

@@ -1,247 +1,71 @@
-// import * as React from 'react';
-// import { styled, useTheme } from '@mui/material/styles';
-// import Box from '@mui/material/Box';
-// import MuiDrawer from '@mui/material/Drawer';
-// import MuiAppBar from '@mui/material/AppBar';
-// import Toolbar from '@mui/material/Toolbar';
-// import List from '@mui/material/List';
-// import CssBaseline from '@mui/material/CssBaseline';
-// import Typography from '@mui/material/Typography';
-// import Divider from '@mui/material/Divider';
-// import IconButton from '@mui/material/IconButton';
-// import MenuIcon from '@mui/icons-material/Menu';
-// import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-// import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-// import ListItem from '@mui/material/ListItem';
-// import ListItemButton from '@mui/material/ListItemButton';
-// import ListItemIcon from '@mui/material/ListItemIcon';
-// import ListItemText from '@mui/material/ListItemText';
-
-// // Custom icons
-// import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-// import PeopleIcon from '@mui/icons-material/People';
-// import InventoryIcon from '@mui/icons-material/Inventory';
-// import CategoryIcon from '@mui/icons-material/Category';
-// import HomeIcon from '@mui/icons-material/Home';
-// import logo from '../../assets/WhatsApp Image 2025-05-06 at 12.31.39_3f99cae6.jpg';
-// import { Height } from '@mui/icons-material';
-
-// const drawerWidth = 240;
-
-// const openedMixin = (theme) => ({
-//   width: drawerWidth,
-//   transition: theme.transitions.create('width', {
-//     easing: theme.transitions.easing.sharp,
-//     duration: theme.transitions.duration.enteringScreen,
-//   }),
-//   overflowX: 'hidden',
-// });
-
-// const closedMixin = (theme) => ({
-//   transition: theme.transitions.create('width', {
-//     easing: theme.transitions.easing.sharp,
-//     duration: theme.transitions.duration.leavingScreen,
-//   }),
-//   overflowX: 'hidden',
-//   width: `calc(${theme.spacing(7)} + 1px)`,
-//   [theme.breakpoints.up('sm')]: {
-//     width: `calc(${theme.spacing(8)} + 1px)`,
-//   },
-// });
-
-// const DrawerHeader = styled('div')(({ theme }) => ({
-//   display: 'flex',
-//   alignItems: 'center',
-//   justifyContent: 'flex-end',
-//   padding: theme.spacing(0, 1),
-//   ...theme.mixins.toolbar,
-// }));
-
-// const AppBar = styled(MuiAppBar, {
-//   shouldForwardProp: (prop) => prop !== 'open',
-// })(({ theme, open }) => ({
-//   zIndex: theme.zIndex.drawer + 1,
-//   transition: theme.transitions.create(['width', 'margin'], {
-//     easing: theme.transitions.easing.sharp,
-//     duration: theme.transitions.duration.leavingScreen,
-//   }),
-//   ...(open && {
-//     marginLeft: drawerWidth,
-//     width: `calc(100% - ${drawerWidth}px)`,
-//     transition: theme.transitions.create(['width', 'margin'], {
-//       easing: theme.transitions.easing.sharp,
-//       duration: theme.transitions.duration.enteringScreen,
-//     }),
-//   }),
-// }));
-
-// const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-//   ({ theme, open }) => ({
-//     width: drawerWidth,
-//     flexShrink: 0,
-//     whiteSpace: 'nowrap',
-//     boxSizing: 'box-sizing',
-//     ...(open && {
-//       ...openedMixin(theme),
-//       '& .MuiDrawer-paper': openedMixin(theme),
-//     }),
-//     ...(!open && {
-//       ...closedMixin(theme),
-//       '& .MuiDrawer-paper': closedMixin(theme),
-//     }),
-//   })
-// );
-
-// export default function Sidebar() {
-//   const theme = useTheme();
-//   const [open, setOpen] = React.useState(false);
-
-//   const handleDrawerOpen = () => {
-//     setOpen(true);
-//   };
-
-//   const handleDrawerClose = () => {
-//     setOpen(false);
-//   };
-
-//   const menuItems = [
-//     { text: 'Home', icon: <HomeIcon /> },
-//     { text: 'Users', icon: <PeopleIcon /> },
-//     { text: 'Product', icon: <InventoryIcon />, path: '/product' },
-//     { text: 'Category', icon: <CategoryIcon /> },
-//     { text: 'Order', icon: <ShoppingCartIcon /> },
-//   ];
-
-//   return (
-//     <Box sx={{ display: 'block' }}>
-//       <CssBaseline />
-//       <AppBar position="fixed" sx={{ background: 'black' }} open={open}>
-//         <Toolbar>
-//           <IconButton
-//             color="inherit"
-//             aria-label="open drawer"
-//             onClick={handleDrawerOpen}
-//             edge="start"
-//             sx={{
-//               marginRight: 5,
-//               ...(open && { display: 'none' }),
-//             }}
-//           >
-//             <MenuIcon />
-//           </IconButton>
-//           <Typography variant="h6" noWrap component="div">
-//             Dashboard
-//           </Typography>
-//         </Toolbar>
-//       </AppBar>
-//       <Drawer
-//         variant="permanent"
-//         open={open}
-//         sx={{
-//           '& .MuiDrawer-paper': {
-//             background: '#000000',
-//           },
-//         }}
-//       >
-//         <DrawerHeader>
-//   <img
-//     src={logo}
-//     alt="Small Logo"
-//     style={{
-//       width: '250px',
-//       height: '150px',
-//       marginRight: '0px',
-//       display: open ? 'block' : 'none',
-//     }}
-//   />
-//   <IconButton onClick={handleDrawerClose}>
-//     {theme.direction === 'rtl' ? (
-//       <ChevronRightIcon style={{ color: '#FFFFFF' }} />
-//     ) : (
-//       <ChevronLeftIcon style={{ color: '#FFFFFF' }} />
-//     )}
-//   </IconButton>
-// </DrawerHeader>
-//         <Divider />
-//         <List>
-//           {menuItems.map(({ text, icon }) => (
-//             <ListItem key={text} disablePadding sx={{ display: 'block' }}>
-//               <ListItemButton
-//                 sx={{
-//                   minHeight: 48,
-//                   justifyContent: open ? 'initial' : 'center',
-//                   px: 2.5,
-//                 }}
-//               >
-//                 <ListItemIcon
-//                   sx={{
-//                     minWidth: 0,
-//                     mr: open ? 3 : 'auto',
-//                     justifyContent: 'center',
-//                   }}
-//                 >
-//                   {React.cloneElement(icon, { style: { color: '#FFFFFF' } })}
-//                 </ListItemIcon>
-//                 <ListItemText
-//                   primary={text}
-//                   sx={{
-//                     opacity: open ? 1 : 0,
-//                     color: open ? '#FFFFFF' : 'transparent',
-//                   }}
-//                 />
-//               </ListItemButton>
-//             </ListItem>
-//           ))}
-//         </List>
-//       </Drawer>
-//     </Box>
-//   );
-// }
-import * as React from 'react';
+import React from 'react';
 import { styled, useTheme } from '@mui/material/styles';
 import {
-  Box, CssBaseline, Typography, Divider, IconButton, List,
-  ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar
+  Box,
+  Drawer,
+  AppBar,
+  Toolbar,
+  List,
+  Typography,
+  Divider,
+  IconButton,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  useMediaQuery
 } from '@mui/material';
-
-import MuiDrawer from '@mui/material/Drawer';
-import MuiAppBar from '@mui/material/AppBar';
-
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import PeopleIcon from '@mui/icons-material/People';
-import InventoryIcon from '@mui/icons-material/Inventory';
-import CategoryIcon from '@mui/icons-material/Category';
-import HomeIcon from '@mui/icons-material/Home';
-
-import { useNavigate } from 'react-router-dom';
+import {
+  Menu as MenuIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  Home as HomeIcon,
+  People as PeopleIcon,
+  Inventory as InventoryIcon,
+  Category as CategoryIcon,
+  ShoppingCart as ShoppingCartIcon
+} from '@mui/icons-material';
+import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../../assets/WhatsApp Image 2025-05-06 at 12.31.39_3f99cae6.jpg';
 
 const drawerWidth = 240;
 
-const openedMixin = (theme) => ({
-  width: drawerWidth,
-  transition: theme.transitions.create('width', {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.enteringScreen,
+const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
+  ({ theme, open }) => ({
+    flexGrow: 1,
+    padding: theme.spacing(3),
+    transition: theme.transitions.create('margin', {
+      easing: theme.transitions.easing.easeInOut,
+      duration: theme.transitions.duration.standard,
+    }),
+    marginLeft: `-${drawerWidth}px`,
+    ...(open && {
+      transition: theme.transitions.create('margin', {
+        easing: theme.transitions.easing.easeInOut,
+        duration: theme.transitions.duration.standard,
+      }),
+      marginLeft: 0,
+    }),
   }),
-  overflowX: 'hidden',
-});
+);
 
-const closedMixin = (theme) => ({
-  transition: theme.transitions.create('width', {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
+const AppBarStyled = styled(AppBar, {
+  shouldForwardProp: (prop) => prop !== 'open',
+})(({ theme, open }) => ({
+  zIndex: theme.zIndex.drawer + 1,
+  transition: theme.transitions.create(['width', 'margin'], {
+    easing: theme.transitions.easing.easeInOut,
+    duration: theme.transitions.duration.standard,
   }),
-  overflowX: 'hidden',
-  width: `calc(${theme.spacing(7)} + 1px)`,
-  [theme.breakpoints.up('sm')]: {
-    width: `calc(${theme.spacing(8)} + 1px)`,
-  },
-});
+  ...(open && {
+    marginLeft: drawerWidth,
+    width: `calc(100% - ${drawerWidth}px)`,
+    transition: theme.transitions.create(['width', 'margin'], {
+      easing: theme.transitions.easing.easeInOut,
+      duration: theme.transitions.duration.standard,
+    }),
+  }),
+}));
 
 const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -251,48 +75,20 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   ...theme.mixins.toolbar,
 }));
 
-const AppBar = styled(MuiAppBar, {
-  shouldForwardProp: (prop) => prop !== 'open',
-})(({ theme, open }) => ({
-  zIndex: theme.zIndex.drawer + 1,
-  transition: theme.transitions.create(['width', 'margin'], {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  ...(open && {
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(['width', 'margin'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  }),
-}));
-
-const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    width: drawerWidth,
-    flexShrink: 0,
-    whiteSpace: 'nowrap',
-    boxSizing: 'border-box',
-    ...(open && {
-      ...openedMixin(theme),
-      '& .MuiDrawer-paper': openedMixin(theme),
-    }),
-    ...(!open && {
-      ...closedMixin(theme),
-      '& .MuiDrawer-paper': closedMixin(theme),
-    }),
-  })
-);
-
 export default function Sidebar() {
   const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [open, setOpen] = React.useState(!isMobile);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleDrawerOpen = () => setOpen(true);
-  const handleDrawerClose = () => setOpen(false);
+  const handleDrawerOpen = () => {
+    setOpen(true);
+  };
+
+  const handleDrawerClose = () => {
+    setOpen(false);
+  };
 
   const menuItems = [
     { text: 'Home', icon: <HomeIcon />, path: '/' },
@@ -304,8 +100,7 @@ export default function Sidebar() {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
-      <AppBar position="fixed" sx={{ background: 'black' }} open={open}>
+      <AppBarStyled position="fixed" sx={{ background: 'black' }} open={open}>
         <Toolbar>
           <IconButton
             color="inherit"
@@ -319,20 +114,21 @@ export default function Sidebar() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            Dashboard
-          </Typography>
         </Toolbar>
-      </AppBar>
-
+      </AppBarStyled>
       <Drawer
-        variant="permanent"
-        open={open}
         sx={{
           '& .MuiDrawer-paper': {
             background: '#050608',
+            transition: theme.transitions.create('width', {
+              easing: theme.transitions.easing.easeInOut,
+              duration: theme.transitions.duration.standard,
+            }),
           },
         }}
+        variant={isMobile ? "temporary" : "persistent"}
+        open={open}
+        onClose={handleDrawerClose}
       >
         <DrawerHeader>
           <img
@@ -343,6 +139,7 @@ export default function Sidebar() {
               height: '150px',
               marginRight: '0px',
               display: open ? 'block' : 'none',
+              transition: 'display 0.3s ease-in-out',
             }}
           />
           <IconButton onClick={handleDrawerClose}>
@@ -353,17 +150,36 @@ export default function Sidebar() {
             )}
           </IconButton>
         </DrawerHeader>
-
         <Divider />
         <List>
-          {menuItems.map(({ text, icon, path }) => (
-            <ListItem key={text} disablePadding sx={{ display: 'block' }}>
+          {menuItems.map((item) => (
+            <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
               <ListItemButton
-                onClick={() => navigate(path)}
+                onClick={() => {
+                  navigate(item.path);
+                  if (isMobile) {
+                    handleDrawerClose();
+                  }
+                }}
                 sx={{
                   minHeight: 48,
                   justifyContent: open ? 'initial' : 'center',
                   px: 2.5,
+                  transition: 'all 0.3s ease-in-out',
+                  borderRadius: '8px',
+                  margin: '4px 8px',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  },
+                  ...(location.pathname === item.path && {
+                    backgroundColor: 'white',
+                    '& .MuiListItemIcon-root': {
+                      color: 'black',
+                    },
+                    '& .MuiListItemText-primary': {
+                      color: 'black',
+                    },
+                  }),
                 }}
               >
                 <ListItemIcon
@@ -371,15 +187,22 @@ export default function Sidebar() {
                     minWidth: 0,
                     mr: open ? 3 : 'auto',
                     justifyContent: 'center',
+                    transition: 'color 0.3s ease-in-out',
                   }}
                 >
-                  {React.cloneElement(icon, { style: { color: '#FFFFFF' } })}
+                  {React.cloneElement(item.icon, { 
+                    style: { 
+                      color: location.pathname === item.path ? 'black' : '#FFFFFF',
+                      transition: 'color 0.3s ease-in-out'
+                    } 
+                  })}
                 </ListItemIcon>
                 <ListItemText
-                  primary={text}
+                  primary={item.text}
                   sx={{
                     opacity: open ? 1 : 0,
-                    color: open ? '#FFFFFF' : 'transparent',
+                    color: location.pathname === item.path ? 'black' : '#FFFFFF',
+                    transition: 'all 0.3s ease-in-out',
                   }}
                 />
               </ListItemButton>
@@ -387,6 +210,9 @@ export default function Sidebar() {
           ))}
         </List>
       </Drawer>
+      <Main open={open}>
+        <DrawerHeader />
+      </Main>
     </Box>
   );
 }
