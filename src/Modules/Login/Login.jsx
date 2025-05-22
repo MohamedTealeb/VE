@@ -111,21 +111,7 @@ export default function Login() {
               >
                 {loading ? 'Logging in...' : 'Login'}
               </button>
-
-              {/* إضافة رابط نسيت كلمة المرور */}
-              <div className="mt-4 text-right">
-                <Link to="/forgot-password" className="text-smmt-4 text-center text-sm text-gray-400 hover:underline">
-                  Forgot Password?
-                </Link>
-              </div>
             </form>
-
-            <p className="mt-4 text-center text-sm text-gray-400">
-              Don't have an account?{' '}
-              <Link to="/register" className="text-white underline">
-                Register
-              </Link>
-            </p>
           </div>
         </div>
       </div>
