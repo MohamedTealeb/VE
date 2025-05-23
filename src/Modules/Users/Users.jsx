@@ -1,38 +1,30 @@
 import * as React from 'react';
-import {
-  Paper, Table, TableContainer, TableHead, TableBody, TableRow, TableCell,
-  TablePagination, IconButton, CircularProgress, DialogContentText, Dialog,
-  DialogTitle, DialogContent, DialogActions, Button, Select, MenuItem, FormControl, InputLabel,
-  TextField
-} from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { Paper, CircularProgress, FormControl, InputLabel, Select, MenuItem, Button, Box, useTheme, useMediaQuery } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useDispatch, useSelector } from 'react-redux';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { fetchUsers, removeUser } from '../../redux/slice/UsersSlice/Users';
 import { addAdmin } from '../../Apis/Auth/AddAdmin/AddAdmin_Api';
-
-const columns = [
-  { id: 'fullName', label: 'Full Name', minWidth: 170 },
-  { id: 'email', label: 'Email', minWidth: 170 },
-  { id: 'phoneNumber', label: 'Phone Number', minWidth: 130 },
-  { id: 'role', label: 'Role', minWidth: 100 },
-  { id: 'createdAt', label: 'Created At', minWidth: 150 },
-  { id: 'actions', label: 'Actions', minWidth: 100 },
-];
+import UsersTable from './components/UsersTable';
+import AddAdminDialog from './components/AddAdminDialog';
+import DeleteConfirmation from './components/DeleteConfirmation';
 
 export default function Users() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
-  const [roleFilter, setRoleFilter] = useState('all');
-  const [addAdminDialogOpen, setAddAdminDialogOpen] = useState(false);
-  const [newAdmin, setNewAdmin] = useState({
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [userToDelete, setUserToDelete] = React.useState(null);
+  const [roleFilter, setRoleFilter] = React.useState('all');
+  const [addAdminDialogOpen, setAddAdminDialogOpen] = React.useState(false);
+  const [newAdmin, setNewAdmin] = React.useState({
     firstName: '',
     lastName: '',
     email: '',
@@ -53,10 +45,7 @@ export default function Users() {
     dispatch(fetchUsers());
   }, [dispatch, navigate]);
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
+  const handleChangePage = (event, newPage) => setPage(newPage);
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
@@ -77,7 +66,6 @@ export default function Users() {
     try {
       await dispatch(removeUser(userToDelete.id)).unwrap();
       toast.success('User deleted successfully');
-      // Refresh the users list after deletion
       dispatch(fetchUsers());
     } catch (err) {
       toast.error(err?.message || 'Failed to delete user');
@@ -87,26 +75,7 @@ export default function Users() {
     }
   };
 
-  const handleDeleteCancel = () => {
-    setDeleteDialogOpen(false);
-    setUserToDelete(null);
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const handleAddAdminClick = () => {
-    setAddAdminDialogOpen(true);
-  };
-
+  const handleAddAdminClick = () => setAddAdminDialogOpen(true);
   const handleAddAdminClose = () => {
     setAddAdminDialogOpen(false);
     setNewAdmin({
@@ -124,7 +93,7 @@ export default function Users() {
       await dispatch(addAdmin(newAdmin)).unwrap();
       toast.success('Admin added successfully');
       handleAddAdminClose();
-      dispatch(fetchUsers()); // Refresh the users list
+      dispatch(fetchUsers());
     } catch (err) {
       toast.error(err.message || 'Failed to add admin');
     }
@@ -154,7 +123,6 @@ export default function Users() {
     );
   }
 
-  // Ensure we have valid data before rendering
   if (!users?.data || !Array.isArray(users.data)) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -168,15 +136,34 @@ export default function Users() {
     return user.role?.toLowerCase() === roleFilter.toLowerCase();
   });
 
-  const displayUsers = filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
   return (
     <>
       <Toaster />
-      <div className="overflow-hidden flex flex-col">
-        <Paper sx={{ width: '100%', mt: '90px', ml: '40px', p: 2 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', marginLeft: '20px' }}>
-            <FormControl sx={{ minWidth: 200 }}>
+      <Box sx={{ 
+        bgcolor: 'white', 
+        minHeight: '100vh', 
+        p: { xs: 1, sm: 2, md: 3 }
+      }}>
+        <Paper sx={{ 
+          width: '100%', 
+          mt: { xs: '60px', sm: '70px', md: '90px' }, 
+          ml: { xs: 0, sm: '20px', md: '40px' }, 
+          p: { xs: 1, sm: 2, md: 3 },
+          borderRadius: '8px'
+        }}>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between', 
+            alignItems: { xs: 'stretch', sm: 'center' },
+            gap: { xs: 2, sm: 0 },
+            mb: 2,
+            px: { xs: 1, sm: 2 }
+          }}>
+            <FormControl sx={{ 
+              minWidth: { xs: '100%', sm: 200 },
+              mb: { xs: 2, sm: 0 }
+            }}>
               <InputLabel id="role-filter-label">Filter by Role</InputLabel>
               <Select
                 labelId="role-filter-label"
@@ -191,162 +178,48 @@ export default function Users() {
             </FormControl>
             <Button
               variant="contained"
-            
-              style={{ marginRight: '30px' ,backgroundColor:'black' }}
+              sx={{ 
+                backgroundColor: 'black',
+                borderRadius: '8px',
+                width: { xs: '100%', sm: 'auto' }
+              }}
               startIcon={<AddIcon />}
               onClick={handleAddAdminClick}
             >
               Add Admin
             </Button>
-          </div>
-          <TableContainer sx={{ maxHeight: 600 }}>
-            <Table stickyHeader size="small" aria-label="sticky table">
-              <TableHead>
-                <TableRow>
-                  {columns.map((column) => (
-                    <TableCell key={column.id} style={{ minWidth: column.minWidth }} align={column.align || 'left'}>
-                      {column.label}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {displayUsers.map((user) => (
-                  <TableRow hover tabIndex={-1} key={user.id}>
-                    {columns.map((column) => {
-                      if (column.id === 'actions') {
-                        return (
-                          <TableCell key={column.id}>
-                            <IconButton
-                              color="error"
-                              onClick={() => handleDeleteClick(user)}
-                              size="small"
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </TableCell>
-                        );
-                      }
-                      if (column.id === 'createdAt') {
-                        return (
-                          <TableCell key={column.id} align={column.align || 'left'}>
-                            {formatDate(user[column.id])}
-                          </TableCell>
-                        );
-                      }
-                      if (column.id === 'fullName') {
-                        return (
-                          <TableCell key={column.id} align={column.align || 'left'}>
-                            {`${user.firstName} ${user.lastName}`}
-                          </TableCell>
-                        );
-                      }
-                      const value = user[column.id];
-                      return (
-                        <TableCell key={column.id} align={column.align || 'left'}>
-                          {value}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          </Box>
 
-          <TablePagination
-            rowsPerPageOptions={[10, 25, 100]}
-            component="div"
-            count={users.total || 0}
-            rowsPerPage={rowsPerPage}
+          <UsersTable
+            users={filteredUsers}
             page={page}
+            rowsPerPage={rowsPerPage}
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
+            onDelete={handleDeleteClick}
+            isMobile={isMobile}
+            isTablet={isTablet}
           />
-
-          {/* Add Admin Dialog */}
-          <Dialog open={addAdminDialogOpen} onClose={handleAddAdminClose} maxWidth="sm" fullWidth>
-            <DialogTitle>Add New Admin</DialogTitle>
-            <DialogContent>
-              <form onSubmit={handleAddAdminSubmit}>
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  <TextField
-                    name="firstName"
-                    label="First Name"
-                    value={newAdmin.firstName}
-                    onChange={handleNewAdminChange}
-                    required
-                    fullWidth
-                  />
-                  <TextField
-                    name="lastName"
-                    label="Last Name"
-                    value={newAdmin.lastName}
-                    onChange={handleNewAdminChange}
-                    required
-                    fullWidth
-                  />
-                </div>
-                <TextField
-                  name="email"
-                  label="Email"
-                  type="email"
-                  value={newAdmin.email}
-                  onChange={handleNewAdminChange}
-                  required
-                  fullWidth
-                  margin="normal"
-                />
-                <TextField
-                  name="phoneNumber"
-                  label="Phone Number"
-                  value={newAdmin.phoneNumber}
-                  onChange={handleNewAdminChange}
-                  required
-                  fullWidth
-                  margin="normal"
-                />
-                <TextField
-                  name="password"
-                  label="Password"
-                  type="password"
-                  value={newAdmin.password}
-                  onChange={handleNewAdminChange}
-                  required
-                  fullWidth
-                  margin="normal"
-                />
-              </form>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleAddAdminClose}>Cancel</Button>
-              <Button 
-                onClick={handleAddAdminSubmit} 
-                color="primary" 
-                variant="contained"
-                disabled={addAdminLoading}
-              >
-                {addAdminLoading ? 'Adding...' : 'Add Admin'}
-              </Button>
-            </DialogActions>
-          </Dialog>
-
-          <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
-            <DialogTitle>Confirm Delete</DialogTitle>
-            <DialogContent>
-              <DialogContentText>
-                Are you sure you want to delete user "{userToDelete?.firstName} {userToDelete?.lastName}"?
-              </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleDeleteCancel}>Cancel</Button>
-              <Button onClick={handleDeleteConfirm} color="error" variant="contained">
-                Delete
-              </Button>
-            </DialogActions>
-          </Dialog>
         </Paper>
-      </div>
+
+        <AddAdminDialog
+          open={addAdminDialogOpen}
+          onClose={handleAddAdminClose}
+          formData={newAdmin}
+          onChange={handleNewAdminChange}
+          onSubmit={handleAddAdminSubmit}
+          loading={addAdminLoading}
+          isMobile={isMobile}
+        />
+
+        <DeleteConfirmation
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          onConfirm={handleDeleteConfirm}
+          userName={userToDelete ? `${userToDelete.firstName} ${userToDelete.lastName}` : ''}
+          isMobile={isMobile}
+        />
+      </Box>
     </>
   );
 }

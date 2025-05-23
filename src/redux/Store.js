@@ -6,7 +6,7 @@ import addAdminReducer from './slice/UsersSlice/AddAdminSlice.jsx';
 import colorsReducer from './slice/ColorsSlice/Colors.jsx';
 import productsReducer from './slice/ProductsSlice/Products.jsx';
 import sizesReducer from './slice/SizesSlice/Sizes.jsx';
-// import ordersReducer from './slice/OrdersSlice/Orders.jsx';
+import ordersReducer from './slice/OrdersSlice/Orders.jsx';
 
 const store = configureStore({
     reducer: {
@@ -17,7 +17,7 @@ const store = configureStore({
         colors: colorsReducer,
         products: productsReducer,
         sizes: sizesReducer,
-        // orders: ordersReducer
+        orders: ordersReducer
     },
 });
 

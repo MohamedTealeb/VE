@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Paper, Box, useMediaQuery, useTheme, Button } from '@mui/material';
+import { Paper, Box, useMediaQuery, useTheme, Button, Typography } from '@mui/material';
 import { fetchColors, addColor, editColor, removeColor } from '../../redux/slice/ColorsSlice/Colors';
 import { fetchSizes, addSize, editSize, removeSize } from '../../redux/slice/SizesSlice/Sizes';
 import { fetchProducts, addProduct, editProduct, removeProduct } from '../../redux/slice/ProductsSlice/Products';
@@ -11,6 +11,7 @@ import ColorDialog from './components/ColorDialog';
 import SizeDialog from './components/SizeDialog';
 import ProductDialog from './components/ProductDialog';
 import AddIcon from '@mui/icons-material/Add';
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function Product() {
   const dispatch = useDispatch();
@@ -47,19 +48,32 @@ export default function Product() {
     setColorDialogOpen(true);
   };
 
-  const handleDeleteColor = (color) => {
+  const handleDeleteColor = async (color) => {
     if (window.confirm('Are you sure you want to delete this color?')) {
-      dispatch(removeColor(color.id));
+      try {
+        await dispatch(removeColor(color.id)).unwrap();
+        toast.success('Color deleted successfully');
+        dispatch(fetchColors());
+      } catch (err) {
+        toast.error(err?.message || 'Failed to delete color');
+      }
     }
   };
 
-  const handleSaveColor = (formData) => {
-    if (selectedColor) {
-      dispatch(editColor({ id: selectedColor.id, ...formData }));
-    } else {
-      dispatch(addColor(formData));
+  const handleSaveColor = async (formData) => {
+    try {
+      if (selectedColor) {
+        await dispatch(editColor({ id: selectedColor.id, ...formData })).unwrap();
+        toast.success('Color updated successfully');
+      } else {
+        await dispatch(addColor(formData)).unwrap();
+        toast.success('Color added successfully');
+      }
+      setColorDialogOpen(false);
+      dispatch(fetchColors());
+    } catch (err) {
+      toast.error(err?.message || 'Failed to save color');
     }
-    setColorDialogOpen(false);
   };
 
   const handleAddSize = () => {
@@ -72,19 +86,32 @@ export default function Product() {
     setSizeDialogOpen(true);
   };
 
-  const handleDeleteSize = (size) => {
+  const handleDeleteSize = async (size) => {
     if (window.confirm('Are you sure you want to delete this size?')) {
-      dispatch(removeSize(size.id));
+      try {
+        await dispatch(removeSize(size.id)).unwrap();
+        toast.success('Size deleted successfully');
+        dispatch(fetchSizes());
+      } catch (err) {
+        toast.error(err?.message || 'Failed to delete size');
+      }
     }
   };
 
-  const handleSaveSize = (formData) => {
-    if (selectedSize) {
-      dispatch(editSize({ id: selectedSize.id, ...formData }));
-    } else {
-      dispatch(addSize(formData));
+  const handleSaveSize = async (formData) => {
+    try {
+      if (selectedSize) {
+        await dispatch(editSize({ id: selectedSize.id, ...formData })).unwrap();
+        toast.success('Size updated successfully');
+      } else {
+        await dispatch(addSize(formData)).unwrap();
+        toast.success('Size added successfully');
+      }
+      setSizeDialogOpen(false);
+      dispatch(fetchSizes());
+    } catch (err) {
+      toast.error(err?.message || 'Failed to save size');
     }
-    setSizeDialogOpen(false);
   };
 
   const handleAddProduct = () => {
@@ -97,19 +124,32 @@ export default function Product() {
     setProductDialogOpen(true);
   };
 
-  const handleDeleteProduct = (product) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      dispatch(removeProduct(product.id));
+  const handleDeleteProduct = async (product) => {
+    if (window.confirm('Are you sure you want to delete this T-shirt?')) {
+      try {
+        await dispatch(removeProduct(product.id)).unwrap();
+        toast.success('T-shirt deleted successfully');
+        dispatch(fetchProducts());
+      } catch (err) {
+        toast.error(err?.message || 'Failed to delete T-shirt');
+      }
     }
   };
 
-  const handleSaveProduct = (formData) => {
-    if (selectedProduct) {
-      dispatch(editProduct({ id: selectedProduct.id, ...formData }));
-    } else {
-      dispatch(addProduct(formData));
+  const handleSaveProduct = async (formData) => {
+    try {
+      if (selectedProduct) {
+        await dispatch(editProduct({ id: selectedProduct.id, ...formData })).unwrap();
+        toast.success('T-shirt updated successfully');
+      } else {
+        await dispatch(addProduct(formData)).unwrap();
+        toast.success('T-shirt added successfully');
+      }
+      setProductDialogOpen(false);
+      dispatch(fetchProducts());
+    } catch (err) {
+      toast.error(err?.message || 'Failed to save T-shirt');
     }
-    setProductDialogOpen(false);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -122,35 +162,55 @@ export default function Product() {
   };
 
   if (colorsLoading || sizesLoading || productsLoading) {
-    return <div>Loading...</div>;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography>Loading...</Typography>
+      </Box>
+    );
   }
 
   if (colorsError || sizesError || productsError) {
-    return <div>Error: {colorsError || sizesError || productsError}</div>;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'error.main' }}>
+        <Typography>Error: {colorsError || sizesError || productsError}</Typography>
+      </Box>
+    );
   }
 
   return (
-    <Box sx={{ bgcolor: 'white', minHeight: '100vh', p: 2 }}>
+    <Box sx={{ bgcolor: 'white', minHeight: '100vh', p: { xs: 1, sm: 2, md: 3 } }}>
+      <Toaster />
       <Paper sx={{ 
         p: { xs: 1, sm: 2, md: 3 },
         bgcolor: 'white',
         borderRadius: '8px'
+        ,
+        marginTop:'20px'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', marginRight: '30px' }}>
-          <h2 className="text-2xl font-semibold">Products</h2>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          mb: 3
+        }}>
+          <Typography variant="h5" component="h2">
+            T-Shirts
+          </Typography>
           <Button
             variant="contained"
-            style={{ 
-              marginRight: '30px', 
+            sx={{ 
               backgroundColor: 'black',
-              borderRadius: '8px'
+              borderRadius: '8px',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)'
+              }
             }}
             startIcon={<AddIcon />}
             onClick={handleAddProduct}
           >
-            Add Product
+            Add T-Shirt
           </Button>
-        </div>
+        </Box>
 
         <ProductTable 
           products={products}
@@ -162,24 +222,33 @@ export default function Product() {
           onRowsPerPageChange={handleChangeRowsPerPage}
           onEdit={handleEditProduct}
           onDelete={handleDeleteProduct}
-          colorsArray={colors}
+          isMobile={isMobile}
+          isTablet={isTablet}
         />
 
         <Box sx={{ mt: 4 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Colors
+          </Typography>
           <ColorTable 
             colors={colors}
             onAdd={handleAddColor}
             onEdit={handleEditColor}
             onDelete={handleDeleteColor}
+            isMobile={isMobile}
           />
         </Box>
 
         <Box sx={{ mt: 4 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Sizes
+          </Typography>
           <SizeTable 
             sizes={sizes}
             onAdd={handleAddSize}
             onEdit={handleEditSize}
             onDelete={handleDeleteSize}
+            isMobile={isMobile}
           />
         </Box>
 
@@ -188,6 +257,8 @@ export default function Product() {
           onClose={() => setColorDialogOpen(false)}
           onSave={handleSaveColor}
           color={selectedColor}
+          loading={colorsLoading}
+          isMobile={isMobile}
         />
 
         <SizeDialog
@@ -195,6 +266,8 @@ export default function Product() {
           onClose={() => setSizeDialogOpen(false)}
           onSave={handleSaveSize}
           size={selectedSize}
+          loading={sizesLoading}
+          isMobile={isMobile}
         />
 
         <ProductDialog
@@ -204,6 +277,8 @@ export default function Product() {
           product={selectedProduct}
           colors={colors}
           sizes={sizes}
+          loading={productsLoading}
+          isMobile={isMobile}
         />
       </Paper>
     </Box>
