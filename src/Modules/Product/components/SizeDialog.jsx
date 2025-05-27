@@ -4,29 +4,32 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
   Button,
-  Box
+  TextField,
+  Box,
+  CircularProgress
 } from '@mui/material';
 
-export default function SizeDialog({ 
-  open, 
-  onClose, 
-  onSave, 
-  size = null 
+export default function SizeDialog({
+  open,
+  onClose,
+  onSave,
+  size,
+  loading,
+  isMobile
 }) {
   const [formData, setFormData] = useState({
-    name: ''
+    label: ''
   });
 
   useEffect(() => {
     if (size) {
       setFormData({
-        name: size.name
+        label: size.label || ''
       });
     } else {
       setFormData({
-        name: ''
+        label: ''
       });
     }
   }, [size]);
@@ -45,34 +48,58 @@ export default function SizeDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      fullScreen={isMobile}
+    >
+      <DialogTitle sx={{ 
+        p: { xs: 2, sm: 3 },
+        pb: { xs: 1, sm: 2 }
+      }}>
+        {size ? 'Edit Size' : 'Add New Size'}
+      </DialogTitle>
       <form onSubmit={handleSubmit}>
-        <DialogTitle>
-          {size ? 'Edit Size' : 'Add New Size'}
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+        <DialogContent sx={{ 
+          p: { xs: 2, sm: 3 },
+          pt: { xs: 1, sm: 2 }
+        }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <TextField
-              name="name"
-              label="Size Name"
-              value={formData.name}
-              onChange={handleChange}
               fullWidth
+              label="Size Label"
+              name="label"
+              value={formData.label}
+              onChange={handleChange}
               required
+              size={isMobile ? "small" : "medium"}
+              placeholder="e.g., S, M, L, XL"
             />
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose}>Cancel</Button>
+        <DialogActions sx={{ 
+          p: { xs: 2, sm: 3 },
+          pt: { xs: 1, sm: 2 }
+        }}>
           <Button 
-            type="submit" 
-            variant="contained" 
-            style={{ 
-              backgroundColor: 'black',
-              borderRadius: '8px'
-            }}
+            onClick={onClose}
+            size={isMobile ? "small" : "medium"}
           >
-            {size ? 'Update' : 'Add'}
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={loading}
+            size={isMobile ? "small" : "medium"}
+          >
+            {loading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              size ? 'Update' : 'Add'
+            )}
           </Button>
         </DialogActions>
       </form>

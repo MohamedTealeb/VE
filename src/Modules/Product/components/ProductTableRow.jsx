@@ -16,8 +16,8 @@ export default function ProductTableRow({
     return category ? category.name : 'N/A';
   };
 
-  const getColorChip = (colorId) => {
-    const color = colorsArray.find(c => c.id === colorId);
+  const getColorChip = (colorObj) => {
+    const color = colorsArray.find(c => c.id === colorObj.colorId);
     return color ? (
       <Chip
         key={color.id}
@@ -36,8 +36,8 @@ export default function ProductTableRow({
     ) : null;
   };
 
-  const getSizeChip = (sizeId) => {
-    const size = sizesArray.find(s => s.id === sizeId);
+  const getSizeChip = (sizeObj) => {
+    const size = sizesArray.find(s => s.id === sizeObj.sizeId);
     return size ? (
       <Chip
         key={size.id}
@@ -66,7 +66,7 @@ export default function ProductTableRow({
           />
         ) : 'N/A'}
       </TableCell>
-      <TableCell>{product.material || 'N/A'}</TableCell>
+      <TableCell>{product.Material || 'N/A'}</TableCell>
       <TableCell>
         <Typography
           sx={{
@@ -76,7 +76,7 @@ export default function ProductTableRow({
             whiteSpace: 'nowrap'
           }}
         >
-          {product.description}
+          {product.discreption}
         </Typography>
       </TableCell>
       <TableCell>
@@ -97,12 +97,12 @@ export default function ProductTableRow({
       </TableCell>
       <TableCell>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-          {product.colors?.map(colorId => getColorChip(colorId))}
+          {product.colors?.map(colorObj => getColorChip(colorObj))}
         </Box>
       </TableCell>
       <TableCell>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-          {product.sizes?.map(sizeId => getSizeChip(sizeId))}
+          {product.sizes?.map(sizeObj => getSizeChip(sizeObj))}
         </Box>
       </TableCell>
       <TableCell>

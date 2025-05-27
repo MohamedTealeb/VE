@@ -2,7 +2,8 @@ import * as React from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, TextField, Box, FormControl, InputLabel,
-  Select, MenuItem, Chip, Grid, Typography, OutlinedInput
+  Select, MenuItem, Chip, Grid, Typography, OutlinedInput,
+  Paper, Divider
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
@@ -16,6 +17,19 @@ const ImagePreview = styled('img')({
   objectFit: 'contain',
   marginTop: '8px',
   borderRadius: '4px',
+});
+
+const ColorBox = styled(Box)(({ color }) => ({
+  width: 24,
+  height: 24,
+  backgroundColor: color,
+  border: '1px solid #ccc',
+  borderRadius: 4,
+  marginRight: 8,
+}));
+
+const SizeChip = styled(Chip)({
+  margin: 4,
 });
 
 export default function ProductDialog({
@@ -115,7 +129,14 @@ export default function ProductDialog({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+    // Format colors and sizes as comma-separated strings
+    const formattedData = {
+      ...formData,
+      colors: formData.colors.join(','),
+      sizes: formData.sizes.join(',')
+    };
+    console.log('Submitting product data:', formattedData);
+    onSave(formattedData);
   };
 
   // Ensure arrays are valid
@@ -228,7 +249,6 @@ export default function ProductDialog({
                 >
                   <MenuItem value="male">Male</MenuItem>
                   <MenuItem value="female">Female</MenuItem>
-                  <MenuItem value="unisex">Unisex</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -245,118 +265,110 @@ export default function ProductDialog({
             </Grid>
 
             <Grid item xs={12}>
-              <FormControl fullWidth size={isMobile ? "small" : "medium"}>
-                <InputLabel>Colors</InputLabel>
-                <Select
-                  multiple
-                  name="colors"
-                  value={formData.colors}
-                  onChange={handleChange}
-                  input={<OutlinedInput label="Colors" />}
-                  renderValue={(selected) => (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {selected.map((colorId) => {
-                        const color = colorsArray.find(c => c.id === colorId);
-                        return color ? (
-                          <Chip
-                            key={color.id}
-                            label={color.name}
-                            sx={{
-                              backgroundColor: color.hexCode,
-                              color: '#fff',
-                              '& .MuiChip-label': {
-                                textShadow: '0 0 2px rgba(0,0,0,0.5)'
-                              }
-                            }}
-                          />
-                        ) : null;
-                      })}
-                    </Box>
-                  )}
-                >
+              <Paper sx={{ p: 2, mb: 2 }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Available Colors
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
                   {colorsArray.map((color) => (
-                    <MenuItem key={color.id} value={color.id}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Box
-                          sx={{
-                            width: 20,
-                            height: 20,
-                            backgroundColor: color.hexCode,
-                            borderRadius: '50%',
-                            border: '1px solid #ccc'
-                          }}
-                        />
-                        {color.name}
-                      </Box>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12}>
-              <FormControl fullWidth size={isMobile ? "small" : "medium"}>
-                <InputLabel>Sizes</InputLabel>
-                <Select
-                  multiple
-                  name="sizes"
-                  value={formData.sizes}
-                  onChange={handleChange}
-                  input={<OutlinedInput label="Sizes" />}
-                  renderValue={(selected) => (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {selected.map((sizeId) => {
-                        const size = sizesArray.find(s => s.id === sizeId);
-                        return size ? (
-                          <Chip
-                            key={size.id}
-                            label={size.name}
-                          />
-                        ) : null;
-                      })}
+                    <Box
+                      key={color.id}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        p: 1,
+                        border: '1px solid #ccc',
+                        borderRadius: 1,
+                        cursor: 'pointer',
+                        bgcolor: formData.colors.includes(color.id) ? 'action.selected' : 'background.paper',
+                        '&:hover': {
+                          bgcolor: 'action.hover',
+                        },
+                      }}
+                      onClick={() => {
+                        setFormData(prev => ({
+                          ...prev,
+                          colors: prev.colors.includes(color.id)
+                            ? prev.colors.filter(id => id !== color.id)
+                            : [...prev.colors, color.id]
+                        }));
+                      }}
+                    >
+                      <ColorBox color={color.hex} />
+                      <Typography variant="body2">{color.name}</Typography>
                     </Box>
-                  )}
-                >
-                  {sizesArray.map((size) => (
-                    <MenuItem key={size.id} value={size.id}>
-                      {size.name}
-                    </MenuItem>
                   ))}
-                </Select>
-              </FormControl>
+                </Box>
+                <Typography variant="caption" color="text.secondary">
+                  Selected Colors: {formData.colors.length}
+                </Typography>
+              </Paper>
             </Grid>
 
             <Grid item xs={12}>
-              <Box sx={{ mt: 2 }}>
-                <label htmlFor="cover-image-upload">
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Available Sizes
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                  {sizesArray.map((size) => (
+                    <SizeChip
+                      key={size.id}
+                      label={size.label}
+                      onClick={() => {
+                        setFormData(prev => ({
+                          ...prev,
+                          sizes: prev.sizes.includes(size.id)
+                            ? prev.sizes.filter(id => id !== size.id)
+                            : [...prev.sizes, size.id]
+                        }));
+                      }}
+                      color={formData.sizes.includes(size.id) ? "primary" : "default"}
+                      variant={formData.sizes.includes(size.id) ? "filled" : "outlined"}
+                    />
+                  ))}
+                </Box>
+                <Typography variant="caption" color="text.secondary">
+                  Selected Sizes: {formData.sizes.length}
+                </Typography>
+              </Paper>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Cover Image
+                </Typography>
+                <label htmlFor="cover-image">
                   <Input
                     accept="image/*"
-                    id="cover-image-upload"
+                    id="cover-image"
                     type="file"
                     onChange={handleCoverImageChange}
-                    required
                   />
                   <Button
                     variant="outlined"
                     component="span"
-                    fullWidth
                     size={isMobile ? "small" : "medium"}
                   >
                     Upload Cover Image
                   </Button>
                 </label>
                 {coverImagePreview && (
-                  <ImagePreview src={coverImagePreview} alt="Cover preview" />
+                  <ImagePreview src={coverImagePreview} alt="Cover Preview" />
                 )}
               </Box>
             </Grid>
 
             <Grid item xs={12}>
-              <Box sx={{ mt: 2 }}>
-                <label htmlFor="additional-images-upload">
+              <Box>
+                <Typography variant="subtitle1" gutterBottom>
+                  Additional Images
+                </Typography>
+                <label htmlFor="additional-images">
                   <Input
                     accept="image/*"
-                    id="additional-images-upload"
+                    id="additional-images"
                     type="file"
                     multiple
                     onChange={handleAdditionalImagesChange}
@@ -364,7 +376,6 @@ export default function ProductDialog({
                   <Button
                     variant="outlined"
                     component="span"
-                    fullWidth
                     size={isMobile ? "small" : "medium"}
                   >
                     Upload Additional Images
@@ -375,8 +386,8 @@ export default function ProductDialog({
                     <ImagePreview
                       key={index}
                       src={preview}
-                      alt={`Additional preview ${index + 1}`}
-                      sx={{ width: '150px', height: '150px' }}
+                      alt={`Additional Preview ${index + 1}`}
+                      sx={{ width: '100px', height: '100px' }}
                     />
                   ))}
                 </Box>
@@ -394,13 +405,13 @@ export default function ProductDialog({
           >
             Cancel
           </Button>
-          <Button 
-            type="submit" 
-            variant="contained" 
+          <Button
+            type="submit"
+            variant="contained"
             disabled={loading}
             size={isMobile ? "small" : "medium"}
           >
-            {loading ? 'Saving...' : (product ? 'Update' : 'Add')}
+            {product ? 'Update' : 'Add'}
           </Button>
         </DialogActions>
       </form>

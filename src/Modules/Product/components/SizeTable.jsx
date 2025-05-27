@@ -47,7 +47,7 @@ export default function SizeTable({
           <TableBody>
             {sizes.map((size) => (
               <TableRow hover tabIndex={-1} key={size.id}>
-                <TableCell>{size.name}</TableCell>
+                <TableCell>{size.label}</TableCell>
                 <TableCell>
                   <IconButton
                     color="primary"

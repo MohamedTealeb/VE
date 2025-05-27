@@ -1,5 +1,11 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { getAllSizes, createSize, updateSize, deleteSize } from '../../../Apis/Sizes/Sizes';
+import {
+  getAllSizes,
+  getSizeById,
+  createSize,
+  updateSize,
+  deleteSize
+} from '../../../Apis/Sizes/Sizes';
 
 // Async thunks
 export const fetchSizes = createAsyncThunk(
@@ -9,7 +15,7 @@ export const fetchSizes = createAsyncThunk(
       const response = await getAllSizes();
       return response;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error);
     }
   }
 );
@@ -21,19 +27,19 @@ export const addSize = createAsyncThunk(
       const response = await createSize(sizeData);
       return response;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error);
     }
   }
 );
 
 export const editSize = createAsyncThunk(
   'sizes/editSize',
-  async (sizeData, { rejectWithValue }) => {
+  async ({ id, sizeData }, { rejectWithValue }) => {
     try {
-      const response = await updateSize(sizeData);
+      const response = await updateSize(id, sizeData);
       return response;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error);
     }
   }
 );
@@ -42,10 +48,10 @@ export const removeSize = createAsyncThunk(
   'sizes/removeSize',
   async (id, { rejectWithValue }) => {
     try {
-      await deleteSize(id);
-      return id;
+      const response = await deleteSize(id);
+      return { id, ...response };
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error);
     }
   }
 );
@@ -70,7 +76,7 @@ const sizesSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch sizes
+      // Fetch Sizes
       .addCase(fetchSizes.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -78,12 +84,13 @@ const sizesSlice = createSlice({
       .addCase(fetchSizes.fulfilled, (state, action) => {
         state.loading = false;
         state.sizes = action.payload;
+        state.success = true;
       })
       .addCase(fetchSizes.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message || 'Failed to fetch sizes';
       })
-      // Add size
+      // Add Size
       .addCase(addSize.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -95,9 +102,9 @@ const sizesSlice = createSlice({
       })
       .addCase(addSize.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message || 'Failed to add size';
       })
-      // Edit size
+      // Edit Size
       .addCase(editSize.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -112,21 +119,21 @@ const sizesSlice = createSlice({
       })
       .addCase(editSize.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message || 'Failed to update size';
       })
-      // Remove size
+      // Remove Size
       .addCase(removeSize.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(removeSize.fulfilled, (state, action) => {
         state.loading = false;
-        state.sizes = state.sizes.filter(size => size.id !== action.payload);
+        state.sizes = state.sizes.filter(size => size.id !== action.payload.id);
         state.success = true;
       })
       .addCase(removeSize.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message || 'Failed to delete size';
       });
   }
 });

@@ -25,6 +25,11 @@ export default function Product() {
   const { products = [], loading: productsLoading, error: productsError } = useSelector((state) => state.products);
   const { categories = [], loading: categoriesLoading, error: categoriesError } = useSelector((state) => state.categories);
 
+  // Debug logs
+  console.log('Colors from Redux:', colors);
+  console.log('Colors Loading:', colorsLoading);
+  console.log('Colors Error:', colorsError);
+
   const [colorDialogOpen, setColorDialogOpen] = useState(false);
   const [selectedColor, setSelectedColor] = useState(null);
   const [sizeDialogOpen, setSizeDialogOpen] = useState(false);
@@ -35,10 +40,22 @@ export default function Product() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
-    dispatch(fetchColors());
-    dispatch(fetchSizes());
-    dispatch(fetchProducts());
-    dispatch(fetchCategories());
+    const fetchData = async () => {
+      try {
+        console.log('Fetching all data...');
+        await Promise.all([
+          dispatch(fetchColors()),
+          dispatch(fetchSizes()),
+          dispatch(fetchProducts()),
+          dispatch(fetchCategories())
+        ]);
+        console.log('Data fetching completed');
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        toast.error('Failed to fetch data');
+      }
+    };
+    fetchData();
   }, [dispatch]);
 
   const handleAddColor = () => {
@@ -128,13 +145,13 @@ export default function Product() {
   };
 
   const handleDeleteProduct = async (product) => {
-    if (window.confirm('Are you sure you want to delete this T-shirt?')) {
+    if (window.confirm('Are you sure you want to delete this product?')) {
       try {
         await dispatch(removeProduct(product.id)).unwrap();
-        toast.success('T-shirt deleted successfully');
+        toast.success('Product deleted successfully');
         dispatch(fetchProducts());
       } catch (err) {
-        toast.error(err?.message || 'Failed to delete T-shirt');
+        toast.error(err?.message || 'Failed to delete product');
       }
     }
   };
@@ -143,15 +160,15 @@ export default function Product() {
     try {
       if (selectedProduct) {
         await dispatch(editProduct({ id: selectedProduct.id, ...formData })).unwrap();
-        toast.success('T-shirt updated successfully');
+        toast.success('Product updated successfully');
       } else {
         await dispatch(addProduct(formData)).unwrap();
-        toast.success('T-shirt added successfully');
+        toast.success('Product added successfully');
       }
       setProductDialogOpen(false);
       dispatch(fetchProducts());
     } catch (err) {
-      toast.error(err?.message || 'Failed to save T-shirt');
+      toast.error(err?.message || 'Failed to save product');
     }
   };
 
@@ -200,22 +217,52 @@ export default function Product() {
           mb: 3
         }}>
           <Typography variant="h5" component="h2">
-           Products
+            Products
           </Typography>
-          <Button
-            variant="contained"
-            sx={{ 
-              backgroundColor: 'black',
-              borderRadius: '8px',
-              '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)'
-              }
-            }}
-            startIcon={<AddIcon />}
-            onClick={handleAddProduct}
-          >
-            Add products
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="contained"
+              sx={{ 
+                backgroundColor: 'black',
+                borderRadius: '8px',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.8)'
+                }
+              }}
+              startIcon={<AddIcon />}
+              onClick={handleAddColor}
+            >
+              Add Color
+            </Button>
+            <Button
+              variant="contained"
+              sx={{ 
+                backgroundColor: 'black',
+                borderRadius: '8px',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.8)'
+                }
+              }}
+              startIcon={<AddIcon />}
+              onClick={handleAddSize}
+            >
+              Add Size
+            </Button>
+            <Button
+              variant="contained"
+              sx={{ 
+                backgroundColor: 'black',
+                borderRadius: '8px',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.8)'
+                }
+              }}
+              startIcon={<AddIcon />}
+              onClick={handleAddProduct}
+            >
+              Add Product
+            </Button>
+          </Box>
         </Box>
 
         <ProductTable 

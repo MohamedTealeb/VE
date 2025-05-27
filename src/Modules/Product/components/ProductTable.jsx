@@ -1,6 +1,7 @@
 import React from 'react';
 import {
-  Table, TableContainer, TableBody, TablePagination
+  Table, TableContainer, TableBody, TablePagination,
+  Box, Typography
 } from '@mui/material';
 import ProductTableHeader from './ProductTableHeader';
 import ProductTableRow from './ProductTableRow';
@@ -17,15 +18,36 @@ export default function ProductTable({
   sizes = [],
   categories = []
 }) {
+  // Debug logs
+  console.log('ProductTable - Products:', products);
+  console.log('ProductTable - Colors:', colors);
+  console.log('ProductTable - Sizes:', sizes);
+  console.log('ProductTable - Categories:', categories);
+
   // Ensure arrays are valid
   const productsArray = Array.isArray(products) ? products : [];
   const colorsArray = Array.isArray(colors) ? colors : [];
   const sizesArray = Array.isArray(sizes) ? sizes : [];
   const categoriesArray = Array.isArray(categories) ? categories : [];
 
+  if (productsArray.length === 0) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        p: 3,
+        bgcolor: 'white',
+        borderRadius: '8px'
+      }}>
+        <Typography>No products found</Typography>
+      </Box>
+    );
+  }
+
   return (
     <>
-      <TableContainer sx={{
+      <TableContainer sx={{ 
         maxHeight: 600,
         overflow: 'hidden',
         bgcolor: 'white',
