@@ -13,18 +13,24 @@ export default function ProductTable({
   onRowsPerPageChange,
   onEdit,
   onDelete,
-  colorsArray 
+  colors = [],
+  sizes = [],
+  categories = []
 }) {
-  // Ensure products is an array
+  // Ensure arrays are valid
   const productsArray = Array.isArray(products) ? products : [];
+  const colorsArray = Array.isArray(colors) ? colors : [];
+  const sizesArray = Array.isArray(sizes) ? sizes : [];
+  const categoriesArray = Array.isArray(categories) ? categories : [];
 
   return (
     <>
-      <TableContainer sx={{ 
+      <TableContainer sx={{
         maxHeight: 600,
-        overflowX: 'auto',
+        overflow: 'hidden',
         bgcolor: 'white',
-        borderRadius: '8px'
+        borderRadius: '8px',
+        width: '100%'
       }}>
         <Table stickyHeader size="small" aria-label="sticky table">
           <ProductTableHeader />
@@ -36,6 +42,8 @@ export default function ProductTable({
                 onEdit={onEdit}
                 onDelete={onDelete}
                 colorsArray={colorsArray}
+                sizesArray={sizesArray}
+                categoriesArray={categoriesArray}
               />
             ))}
           </TableBody>

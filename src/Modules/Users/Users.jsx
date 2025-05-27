@@ -143,6 +143,8 @@ export default function Users() {
         bgcolor: 'white', 
         minHeight: '100vh', 
         p: { xs: 1, sm: 2, md: 3 }
+        ,
+        overflow:'hidden'
       }}>
         <Paper sx={{ 
           width: '100%', 

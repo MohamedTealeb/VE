@@ -4,6 +4,7 @@ import { Paper, Box, useMediaQuery, useTheme, Button, Typography } from '@mui/ma
 import { fetchColors, addColor, editColor, removeColor } from '../../redux/slice/ColorsSlice/Colors';
 import { fetchSizes, addSize, editSize, removeSize } from '../../redux/slice/SizesSlice/Sizes';
 import { fetchProducts, addProduct, editProduct, removeProduct } from '../../redux/slice/ProductsSlice/Products';
+import { fetchCategories } from '../../redux/slice/CategoriesSlice/Categories';
 import ProductTable from './components/ProductTable';
 import ColorTable from './components/ColorTable';
 import SizeTable from './components/SizeTable';
@@ -22,6 +23,7 @@ export default function Product() {
   const { colors = [], loading: colorsLoading, error: colorsError } = useSelector((state) => state.colors);
   const { sizes = [], loading: sizesLoading, error: sizesError } = useSelector((state) => state.sizes);
   const { products = [], loading: productsLoading, error: productsError } = useSelector((state) => state.products);
+  const { categories = [], loading: categoriesLoading, error: categoriesError } = useSelector((state) => state.categories);
 
   const [colorDialogOpen, setColorDialogOpen] = useState(false);
   const [selectedColor, setSelectedColor] = useState(null);
@@ -36,6 +38,7 @@ export default function Product() {
     dispatch(fetchColors());
     dispatch(fetchSizes());
     dispatch(fetchProducts());
+    dispatch(fetchCategories());
   }, [dispatch]);
 
   const handleAddColor = () => {
@@ -161,7 +164,7 @@ export default function Product() {
     setPage(0);
   };
 
-  if (colorsLoading || sizesLoading || productsLoading) {
+  if (colorsLoading || sizesLoading || productsLoading || categoriesLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <Typography>Loading...</Typography>
@@ -169,24 +172,27 @@ export default function Product() {
     );
   }
 
-  if (colorsError || sizesError || productsError) {
+  if (colorsError || sizesError || productsError || categoriesError) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'error.main' }}>
-        <Typography>Error: {colorsError || sizesError || productsError}</Typography>
+        <Typography>Error: {colorsError || sizesError || productsError || categoriesError}</Typography>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ bgcolor: 'white', minHeight: '100vh', p: { xs: 1, sm: 2, md: 3 } }}>
+    <Box sx={{ bgcolor: 'white', minHeight: '100vh', p: { xs: 1, sm: 2, md: 3 }, overflow: 'hidden' }}>
       <Toaster />
-      <Paper sx={{ 
-        p: { xs: 1, sm: 2, md: 3 },
-        bgcolor: 'white',
-        borderRadius: '8px'
-        ,
-        marginTop:'20px'
-      }}>
+      <Paper
+        sx={{
+          p: { xs: 1, sm: 2, md: 3 },
+          bgcolor: 'white',
+          borderRadius: '8px',
+          marginTop: '20px',
+          width: '100%',
+          overflow: 'hidden'
+        }}
+      >
         <Box sx={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
@@ -194,7 +200,7 @@ export default function Product() {
           mb: 3
         }}>
           <Typography variant="h5" component="h2">
-            T-Shirts
+           Products
           </Typography>
           <Button
             variant="contained"
@@ -208,7 +214,7 @@ export default function Product() {
             startIcon={<AddIcon />}
             onClick={handleAddProduct}
           >
-            Add T-Shirt
+            Add products
           </Button>
         </Box>
 
@@ -216,6 +222,7 @@ export default function Product() {
           products={products}
           colors={colors}
           sizes={sizes}
+          categories={categories}
           page={page}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
@@ -225,32 +232,6 @@ export default function Product() {
           isMobile={isMobile}
           isTablet={isTablet}
         />
-
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Colors
-          </Typography>
-          <ColorTable 
-            colors={colors}
-            onAdd={handleAddColor}
-            onEdit={handleEditColor}
-            onDelete={handleDeleteColor}
-            isMobile={isMobile}
-          />
-        </Box>
-
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Sizes
-          </Typography>
-          <SizeTable 
-            sizes={sizes}
-            onAdd={handleAddSize}
-            onEdit={handleEditSize}
-            onDelete={handleDeleteSize}
-            isMobile={isMobile}
-          />
-        </Box>
 
         <ColorDialog
           open={colorDialogOpen}
@@ -277,6 +258,7 @@ export default function Product() {
           product={selectedProduct}
           colors={colors}
           sizes={sizes}
+          categories={categories}
           loading={productsLoading}
           isMobile={isMobile}
         />
