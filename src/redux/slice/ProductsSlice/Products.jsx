@@ -13,7 +13,8 @@ export const fetchProducts = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await getAllProducts();
-      return response;
+      // Return the data array from the response
+      return response.data;
     } catch (error) {
       return rejectWithValue(error);
     }
@@ -27,7 +28,16 @@ export const addProduct = createAsyncThunk(
       const response = await createProduct(productData);
       return response;
     } catch (error) {
-      return rejectWithValue(error);
+      // If error is a string, use it directly
+      if (typeof error === 'string') {
+        return rejectWithValue(error);
+      }
+      // If error has a response with error message, use that
+      if (error.response?.data?.error) {
+        return rejectWithValue(error.response.data.error);
+      }
+      // Otherwise use a generic error message
+      return rejectWithValue('Failed to create product. Please try again.');
     }
   }
 );
@@ -83,6 +93,7 @@ const productsSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
+        // Store the array of products directly
         state.products = action.payload;
         state.success = true;
       })
@@ -102,7 +113,7 @@ const productsSlice = createSlice({
       })
       .addCase(addProduct.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to add product';
+        state.error = action.payload || 'Failed to add product';
       })
       // Edit Product
       .addCase(editProduct.pending, (state) => {

@@ -39,14 +39,15 @@ export default function Product() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
+  // Fetch all data
   useEffect(() => {
     const fetchData = async () => {
       try {
         console.log('Fetching all data...');
         await Promise.all([
+          dispatch(fetchProducts()),
           dispatch(fetchColors()),
           dispatch(fetchSizes()),
-          dispatch(fetchProducts()),
           dispatch(fetchCategories())
         ]);
         console.log('Data fetching completed');
@@ -57,6 +58,29 @@ export default function Product() {
     };
     fetchData();
   }, [dispatch]);
+
+  // Log colors data only when it changes
+  useEffect(() => {
+    if (colors.length > 0) {
+      console.log('Colors data updated:', {
+        count: colors.length,
+        colors: colors.map(c => ({ id: c.id, name: c.name, hex: c.hex }))
+      });
+    }
+  }, [colors]);
+
+  // Log loading and error states only when they change
+  useEffect(() => {
+    if (colorsLoading) {
+      console.log('Colors loading state changed:', colorsLoading);
+    }
+  }, [colorsLoading]);
+
+  useEffect(() => {
+    if (colorsError) {
+      console.error('Colors error state changed:', colorsError);
+    }
+  }, [colorsError]);
 
   const handleAddColor = () => {
     setSelectedColor(null);
@@ -139,11 +163,6 @@ export default function Product() {
     setProductDialogOpen(true);
   };
 
-  const handleEditProduct = (product) => {
-    setSelectedProduct(product);
-    setProductDialogOpen(true);
-  };
-
   const handleDeleteProduct = async (product) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
@@ -158,16 +177,74 @@ export default function Product() {
 
   const handleSaveProduct = async (formData) => {
     try {
-      if (selectedProduct) {
-        await dispatch(editProduct({ id: selectedProduct.id, ...formData })).unwrap();
-        toast.success('Product updated successfully');
-      } else {
-        await dispatch(addProduct(formData)).unwrap();
-        toast.success('Product added successfully');
+      // Validate formData
+      if (!formData || typeof formData !== 'object') {
+        throw new Error('Product data is required and must be an object');
       }
+
+      // Validate required fields
+      const requiredFields = ['name', 'categoryId', 'description', 'price', 'stock', 'colors', 'sizes'];
+      const missingFields = requiredFields.filter(field => !formData[field]);
+      
+      if (missingFields.length > 0) {
+        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+      }
+
+      // Validate field types
+      if (typeof formData.name !== 'string') {
+        throw new Error('Product name must be a string');
+      }
+      if (typeof formData.description !== 'string') {
+        throw new Error('Product description must be a string');
+      }
+      if (!Array.isArray(formData.colors)) {
+        throw new Error('Colors must be an array');
+      }
+      if (!Array.isArray(formData.sizes)) {
+        throw new Error('Sizes must be an array');
+      }
+      if (isNaN(Number(formData.price))) {
+        throw new Error('Price must be a number');
+      }
+      if (isNaN(Number(formData.stock))) {
+        throw new Error('Stock must be a number');
+      }
+      if (isNaN(Number(formData.categoryId))) {
+        throw new Error('Category ID must be a number');
+      }
+
+      // Prepare the data for API
+      const productData = {
+        ...formData,
+        description: formData.description || '',
+        material: formData.material || '',
+        // Remove any undefined values but keep empty strings
+        ...Object.fromEntries(
+          Object.entries(formData).filter(([_, value]) => value !== undefined)
+        )
+      };
+
+      // Log the data being sent
+      console.log('Saving product with data:', {
+        ...productData,
+        colors: productData.colors?.length || 0,
+        sizes: productData.sizes?.length || 0
+      });
+
+      // Only add new product, no editing
+      await dispatch(addProduct(productData)).unwrap();
+      toast.success('Product added successfully');
+      
       setProductDialogOpen(false);
       dispatch(fetchProducts());
     } catch (err) {
+      console.error('Error saving product:', err);
+      console.error('Error details:', {
+        message: err.message,
+        formData,
+        selectedProduct,
+        stack: err.stack
+      });
       toast.error(err?.message || 'Failed to save product');
     }
   };
@@ -274,7 +351,6 @@ export default function Product() {
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          onEdit={handleEditProduct}
           onDelete={handleDeleteProduct}
           isMobile={isMobile}
           isTablet={isTablet}
@@ -302,7 +378,7 @@ export default function Product() {
           open={productDialogOpen}
           onClose={() => setProductDialogOpen(false)}
           onSave={handleSaveProduct}
-          product={selectedProduct}
+          product={null}
           colors={colors}
           sizes={sizes}
           categories={categories}

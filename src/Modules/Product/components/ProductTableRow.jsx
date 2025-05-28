@@ -3,6 +3,8 @@ import { TableRow, TableCell, IconButton, Chip, Box, Typography } from '@mui/mat
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
+const imageBaseUrl = import.meta.env.VITE_IMAGEURL;
+
 export default function ProductTableRow({ 
   product, 
   onEdit, 
@@ -11,19 +13,30 @@ export default function ProductTableRow({
   sizesArray,
   categoriesArray
 }) {
+  const getImageUrl = (image) => {
+    if (!image) return '';
+    if (typeof image === 'string') {
+      const cleanPath = image.startsWith('/') ? image.substring(1) : image;
+      return image.startsWith('http') ? image : `${imageBaseUrl}${cleanPath}`;
+    }
+    if (image instanceof File) return URL.createObjectURL(image);
+    if (image.url) return image.url;
+    return '';
+  };
+
   const getCategoryName = (categoryId) => {
     const category = categoriesArray.find(c => c.id === categoryId);
     return category ? category.name : 'N/A';
   };
 
   const getColorChip = (colorObj) => {
-    const color = colorsArray.find(c => c.id === colorObj.colorId);
-    return color ? (
+    if (!colorObj?.color) return null;
+    return (
       <Chip
-        key={color.id}
-        label={color.name}
+        key={colorObj.color.id}
+        label={colorObj.color.name}
         sx={{
-          backgroundColor: color.hexCode,
+          backgroundColor: colorObj.color.hex,
           color: '#fff',
           '& .MuiChip-label': {
             textShadow: '0 0 2px rgba(0,0,0,0.5)'
@@ -33,19 +46,19 @@ export default function ProductTableRow({
         }}
         size="small"
       />
-    ) : null;
+    );
   };
 
   const getSizeChip = (sizeObj) => {
-    const size = sizesArray.find(s => s.id === sizeObj.sizeId);
-    return size ? (
+    if (!sizeObj?.size) return null;
+    return (
       <Chip
-        key={size.id}
-        label={size.name}
+        key={sizeObj.size.id}
+        label={sizeObj.size.label}
         size="small"
         sx={{ m: 0.5 }}
       />
-    ) : null;
+    );
   };
 
   return (
@@ -83,7 +96,7 @@ export default function ProductTableRow({
         {product.cover_Image ? (
           <Box
             component="img"
-            src={product.cover_Image}
+            src={getImageUrl(product.cover_Image)}
             alt={product.name}
             sx={{
               width: 50,
@@ -92,8 +105,25 @@ export default function ProductTableRow({
               borderRadius: 1,
               border: '1px solid #ddd'
             }}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = '/default-image.png';
+            }}
           />
-        ) : 'N/A'}
+        ) : (
+          <Box
+            component="img"
+            src="/default-image.png"
+            alt="No image"
+            sx={{
+              width: 50,
+              height: 50,
+              objectFit: 'cover',
+              borderRadius: 1,
+              border: '1px solid #ddd'
+            }}
+          />
+        )}
       </TableCell>
       <TableCell>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>

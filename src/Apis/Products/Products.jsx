@@ -20,9 +20,34 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Log the complete request configuration
+    console.log('API Request:', {
+      url: config.url,
+      method: config.method,
+      headers: config.headers,
+      data: config.data
+    });
     return config;
   },
   (error) => {
+    console.error('Request Interceptor Error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to log responses
+api.interceptors.response.use(
+  (response) => {
+    console.log('API Response:', response.data);
+    return response;
+  },
+  (error) => {
+    console.error('API Response Error:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message
+    });
     return Promise.reject(error);
   }
 );
@@ -53,23 +78,171 @@ export const getProductById = async (id) => {
 // Create new product
 export const createProduct = async (productData) => {
   try {
-    console.log('Creating product with data:', productData);
-    const response = await api.post('/products', productData);
-    console.log('Create Product Response:', response.data);
+    // Create FormData for file uploads
+    const formData = new FormData();
+    
+    // Log the incoming product data
+    console.log('Create Product - Raw data:', {
+      ...productData,
+      colors: productData.colors,
+      sizes: productData.sizes,
+      cover_Image: productData.cover_Image ? 'File present' : 'No file',
+      images: productData.images?.length ? `${productData.images.length} files present` : 'No files'
+    });
+    
+    // Add all product data to FormData
+    Object.keys(productData).forEach(key => {
+      if (key === 'cover_Image' && productData[key]) {
+        formData.append('cover_Image', productData[key]);
+      } else if (key === 'images' && Array.isArray(productData[key])) {
+        productData[key].forEach((file, index) => {
+          formData.append(`images`, file);
+        });
+      } else if (key === 'colors' || key === 'sizes') {
+        // Send array of IDs as comma-separated string
+        const value = Array.isArray(productData[key]) ? productData[key].join(',') : productData[key];
+        formData.append(key, value);
+      } else if (key === 'description') {
+        // Map description to discreption for API compatibility
+        formData.append('discreption', productData[key] || '');
+      } else if (key === 'material') {
+        // Ensure material is never undefined
+        formData.append(key, productData[key] || '');
+      } else {
+        formData.append(key, productData[key]);
+      }
+    });
+
+    // Log the FormData contents
+    console.log('Create Product - FormData contents:');
+    for (let pair of formData.entries()) {
+      console.log(`${pair[0]}: ${pair[1]}`);
+    }
+
+    // Make the API request
+    const response = await api.post('/products', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    
+    console.log('Create Product - API Response:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Create Product Error:', error);
-    throw error.response?.data || error.message;
+    // Log detailed error information
+    console.error('Create Product - Error Details:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      request: {
+        url: error.config?.url,
+        method: error.config?.method,
+        headers: error.config?.headers,
+        data: error.config?.data
+      }
+    });
+
+    // If there's a specific error message from the server, use it
+    if (error.response?.data?.error) {
+      throw error.response.data.error;
+    }
+    
+    // Otherwise throw a generic error
+    throw 'Failed to create product. Please try again.';
   }
 };
 
 // Update product
 export const updateProduct = async (id, productData) => {
   try {
-    const response = await api.put(`/products/${id}`, productData);
+    // Validate input parameters
+    if (!id) {
+      throw new Error('Product ID is required');
+    }
+    if (!productData || typeof productData !== 'object') {
+      throw new Error('Product data is required and must be an object');
+    }
+
+    // Log the incoming parameters
+    console.log('Update Product - Parameters:', {
+      id,
+      productData
+    });
+
+    // Create FormData for file uploads
+    const formData = new FormData();
+    
+    // Log the incoming product data
+    console.log('Update Product - Raw data:', {
+      id,
+      ...productData,
+      colors: productData.colors || [],
+      sizes: productData.sizes || [],
+      cover_Image: productData.cover_Image ? 'File present' : 'No file',
+      images: productData.images?.length ? `${productData.images.length} files present` : 'No files'
+    });
+    
+    // Add all product data to FormData
+    Object.keys(productData).forEach(key => {
+      if (key === 'cover_Image' && productData[key]) {
+        formData.append('cover_Image', productData[key]);
+      } else if (key === 'images' && Array.isArray(productData[key])) {
+        productData[key].forEach((file, index) => {
+          formData.append(`images`, file);
+        });
+      } else if (key === 'colors' || key === 'sizes') {
+        // Ensure we have an array before joining
+        const value = Array.isArray(productData[key]) ? productData[key].join(',') : '';
+        formData.append(key, value);
+      } else if (key === 'description') {
+        // Map description to discreption for API compatibility
+        formData.append('discreption', productData[key] || '');
+      } else if (key === 'material') {
+        // Ensure material is never undefined
+        formData.append(key, productData[key] || '');
+      } else {
+        formData.append(key, productData[key]);
+      }
+    });
+
+    // Log the FormData contents
+    console.log('Update Product - FormData contents:');
+    for (let pair of formData.entries()) {
+      console.log(`${pair[0]}: ${pair[1]}`);
+    }
+
+    // Make the API request
+    const response = await api.put(`/products/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    
+    console.log('Update Product - API Response:', response.data);
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    // Log detailed error information
+    console.error('Update Product - Error Details:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      request: {
+        url: error.config?.url,
+        method: error.config?.method,
+        headers: error.config?.headers,
+        data: error.config?.data
+      }
+    });
+
+    // If there's a specific error message from the server, use it
+    if (error.response?.data?.error) {
+      throw error.response.data.error;
+    }
+    
+    // Otherwise throw a generic error
+    throw error.message || 'Failed to update product. Please try again.';
   }
 };
 

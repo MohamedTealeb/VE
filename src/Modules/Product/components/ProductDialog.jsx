@@ -7,6 +7,8 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
+const imageBaseUrl = import.meta.env.VITE_IMAGEURL;
+
 const Input = styled('input')({
   display: 'none',
 });
@@ -36,7 +38,6 @@ export default function ProductDialog({
   open,
   onClose,
   onSave,
-  product,
   colors = [],
   sizes = [],
   categories = [],
@@ -51,7 +52,7 @@ export default function ProductDialog({
     stock: '',
     target_gender: '',
     material: '',
-    cover_Image: null,
+    cover_Image: '',
     colors: [],
     sizes: [],
     images: []
@@ -60,24 +61,9 @@ export default function ProductDialog({
   const [coverImagePreview, setCoverImagePreview] = React.useState(null);
   const [additionalImagesPreview, setAdditionalImagesPreview] = React.useState([]);
 
+  // Reset form when dialog opens/closes
   React.useEffect(() => {
-    if (product) {
-      setFormData({
-        name: product.name || '',
-        categoryId: product.categoryId || '',
-        description: product.description || '',
-        price: product.price || '',
-        stock: product.stock || '',
-        target_gender: product.target_gender || '',
-        material: product.material || '',
-        colors: product.colors || [],
-        sizes: product.sizes || [],
-        cover_Image: null,
-        images: []
-      });
-      setCoverImagePreview(product.cover_Image || null);
-      setAdditionalImagesPreview(product.images || []);
-    } else {
+    if (open) {
       setFormData({
         name: '',
         categoryId: '',
@@ -86,7 +72,7 @@ export default function ProductDialog({
         stock: '',
         target_gender: '',
         material: '',
-        cover_Image: null,
+        cover_Image: '',
         colors: [],
         sizes: [],
         images: []
@@ -94,7 +80,7 @@ export default function ProductDialog({
       setCoverImagePreview(null);
       setAdditionalImagesPreview([]);
     }
-  }, [product]);
+  }, [open]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -129,14 +115,48 @@ export default function ProductDialog({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Format colors and sizes as comma-separated strings
-    const formattedData = {
-      ...formData,
-      colors: formData.colors.join(','),
-      sizes: formData.sizes.join(',')
-    };
-    console.log('Submitting product data:', formattedData);
-    onSave(formattedData);
+    try {
+      // Format the data before sending
+      const formattedData = {
+        ...formData,
+        // Keep description and material fields
+        description: formData.description || '',
+        material: formData.material || '',
+        // Ensure arrays are properly formatted
+        colors: Array.isArray(formData.colors) ? formData.colors : [],
+        sizes: Array.isArray(formData.sizes) ? formData.sizes : [],
+        // Ensure numeric fields are numbers
+        price: Number(formData.price),
+        stock: Number(formData.stock),
+        categoryId: Number(formData.categoryId)
+      };
+
+      // Remove only truly undefined values, keep empty strings
+      Object.keys(formattedData).forEach(key => {
+        if (formattedData[key] === undefined) {
+          delete formattedData[key];
+        }
+      });
+
+      // Log the formatted data for debugging
+      console.log('Formatted data being sent:', formattedData);
+      
+      // Validate the formatted data
+      if (!formattedData || typeof formattedData !== 'object') {
+        throw new Error('Formatted data is invalid');
+      }
+
+      // Ensure onSave is a function
+      if (typeof onSave !== 'function') {
+        throw new Error('onSave is not a function');
+      }
+      
+      // Call onSave with the formatted data
+      onSave(formattedData);
+    } catch (error) {
+      console.error('Error in handleSubmit:', error);
+      return;
+    }
   };
 
   // Ensure arrays are valid
@@ -156,7 +176,7 @@ export default function ProductDialog({
         p: { xs: 2, sm: 3 },
         pb: { xs: 1, sm: 2 }
       }}>
-        {product ? 'Edit Product' : 'Add New Product'}
+        Add New Product
       </DialogTitle>
       <form onSubmit={handleSubmit}>
         <DialogContent sx={{ 
@@ -164,7 +184,7 @@ export default function ProductDialog({
           pt: { xs: 1, sm: 2 }
         }}>
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <TextField
                 fullWidth
                 label="Product Name"
@@ -176,7 +196,7 @@ export default function ProductDialog({
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <FormControl fullWidth size={isMobile ? "small" : "medium"}>
                 <InputLabel>Category</InputLabel>
                 <Select
@@ -195,7 +215,7 @@ export default function ProductDialog({
               </FormControl>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <TextField
                 fullWidth
                 label="Description"
@@ -209,7 +229,7 @@ export default function ProductDialog({
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Price"
@@ -225,7 +245,7 @@ export default function ProductDialog({
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Stock"
@@ -238,7 +258,7 @@ export default function ProductDialog({
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid xs={12} md={6}>
               <FormControl fullWidth size={isMobile ? "small" : "medium"}>
                 <InputLabel>Target Gender</InputLabel>
                 <Select
@@ -253,7 +273,7 @@ export default function ProductDialog({
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Material"
@@ -264,40 +284,65 @@ export default function ProductDialog({
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <Paper sx={{ p: 2, mb: 2 }}>
                 <Typography variant="subtitle1" gutterBottom>
                   Available Colors
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                  {colorsArray.map((color) => (
-                    <Box
-                      key={color.id}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        p: 1,
-                        border: '1px solid #ccc',
-                        borderRadius: 1,
-                        cursor: 'pointer',
-                        bgcolor: formData.colors.includes(color.id) ? 'action.selected' : 'background.paper',
-                        '&:hover': {
-                          bgcolor: 'action.hover',
-                        },
-                      }}
-                      onClick={() => {
-                        setFormData(prev => ({
-                          ...prev,
-                          colors: prev.colors.includes(color.id)
-                            ? prev.colors.filter(id => id !== color.id)
-                            : [...prev.colors, color.id]
-                        }));
-                      }}
-                    >
-                      <ColorBox color={color.hex} />
-                      <Typography variant="body2">{color.name}</Typography>
-                    </Box>
-                  ))}
+                  {colorsArray.map((color) => {
+                    const isSelected = formData.colors.includes(color.id);
+                    return (
+                      <Box
+                        key={color.id}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          p: 1,
+                          border: '1px solid #ccc',
+                          borderRadius: 1,
+                          cursor: 'pointer',
+                          bgcolor: isSelected ? 'action.selected' : 'background.paper',
+                          '&:hover': {
+                            bgcolor: 'action.hover',
+                          },
+                        }}
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            colors: isSelected
+                              ? prev.colors.filter(id => id !== color.id)
+                              : [...prev.colors, color.id]
+                          }));
+                        }}
+                      >
+                        <ColorBox color={color.hex} />
+                        <Typography variant="body2">{color.name}</Typography>
+                        {isSelected && (
+                          <Chip
+                            label="×"
+                            size="small"
+                            sx={{
+                              ml: 1,
+                              height: 20,
+                              width: 20,
+                              '& .MuiChip-label': {
+                                px: 0.5,
+                                fontSize: '1rem'
+                              }
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFormData(prev => ({
+                                ...prev,
+                                colors: prev.colors.filter(id => id !== color.id)
+                              }));
+                            }}
+                          />
+                        )}
+                      </Box>
+                    );
+                  })}
                 </Box>
                 <Typography variant="caption" color="text.secondary">
                   Selected Colors: {formData.colors.length}
@@ -305,28 +350,38 @@ export default function ProductDialog({
               </Paper>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <Paper sx={{ p: 2 }}>
                 <Typography variant="subtitle1" gutterBottom>
                   Available Sizes
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                  {sizesArray.map((size) => (
-                    <SizeChip
-                      key={size.id}
-                      label={size.label}
-                      onClick={() => {
-                        setFormData(prev => ({
-                          ...prev,
-                          sizes: prev.sizes.includes(size.id)
-                            ? prev.sizes.filter(id => id !== size.id)
-                            : [...prev.sizes, size.id]
-                        }));
-                      }}
-                      color={formData.sizes.includes(size.id) ? "primary" : "default"}
-                      variant={formData.sizes.includes(size.id) ? "filled" : "outlined"}
-                    />
-                  ))}
+                  {sizesArray.map((size) => {
+                    const isSelected = formData.sizes.includes(size.id);
+                    return (
+                      <SizeChip
+                        key={size.id}
+                        label={size.label}
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            sizes: isSelected
+                              ? prev.sizes.filter(id => id !== size.id)
+                              : [...prev.sizes, size.id]
+                          }));
+                        }}
+                        color={isSelected ? "primary" : "default"}
+                        variant={isSelected ? "filled" : "outlined"}
+                        onDelete={isSelected ? (e) => {
+                          e.stopPropagation();
+                          setFormData(prev => ({
+                            ...prev,
+                            sizes: prev.sizes.filter(id => id !== size.id)
+                          }));
+                        } : undefined}
+                      />
+                    );
+                  })}
                 </Box>
                 <Typography variant="caption" color="text.secondary">
                   Selected Sizes: {formData.sizes.length}
@@ -334,7 +389,7 @@ export default function ProductDialog({
               </Paper>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <Box sx={{ mb: 2 }}>
                 <Typography variant="subtitle1" gutterBottom>
                   Cover Image
@@ -355,12 +410,17 @@ export default function ProductDialog({
                   </Button>
                 </label>
                 {coverImagePreview && (
-                  <ImagePreview src={coverImagePreview} alt="Cover Preview" />
+                  <ImagePreview 
+                    src={coverImagePreview.startsWith('blob:') 
+                      ? coverImagePreview 
+                      : `${imageBaseUrl}/${coverImagePreview}`} 
+                    alt="Cover Preview" 
+                  />
                 )}
               </Box>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <Box>
                 <Typography variant="subtitle1" gutterBottom>
                   Additional Images
@@ -385,7 +445,9 @@ export default function ProductDialog({
                   {additionalImagesPreview.map((preview, index) => (
                     <ImagePreview
                       key={index}
-                      src={preview}
+                      src={preview.startsWith('blob:') 
+                        ? preview 
+                        : `${imageBaseUrl}/${preview}`}
                       alt={`Additional Preview ${index + 1}`}
                       sx={{ width: '100px', height: '100px' }}
                     />
@@ -411,7 +473,7 @@ export default function ProductDialog({
             disabled={loading}
             size={isMobile ? "small" : "medium"}
           >
-            {product ? 'Update' : 'Add'}
+            Add
           </Button>
         </DialogActions>
       </form>
