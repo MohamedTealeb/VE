@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Paper, Box, useMediaQuery, useTheme, Button, Typography } from '@mui/material';
-import { fetchColors, addColor, removeColor } from '../../redux/slice/ColorsSlice/Colors';
-import { fetchSizes, addSize, removeSize } from '../../redux/slice/SizesSlice/Sizes';
-import { fetchProducts, addProduct, removeProduct } from '../../redux/slice/ProductsSlice/Products';
+import { fetchColors, addColor, editColor, removeColor } from '../../redux/slice/ColorsSlice/Colors';
+import { fetchSizes, addSize, editSize, removeSize } from '../../redux/slice/SizesSlice/Sizes';
+import { fetchProducts, addProduct, editProduct, removeProduct } from '../../redux/slice/ProductsSlice/Products';
 import { fetchCategories } from '../../redux/slice/CategoriesSlice/Categories';
 import ProductTable from './components/ProductTable';
 import ColorTable from './components/ColorTable';
@@ -28,9 +28,17 @@ export default function Product() {
   const { products = [], loading: productsLoading, error: productsError } = useSelector((state) => state.products);
   const { categories = [], loading: categoriesLoading, error: categoriesError } = useSelector((state) => state.categories);
 
+  // Debug logs
+  console.log('Colors from Redux:', colors);
+  console.log('Colors Loading:', colorsLoading);
+  console.log('Colors Error:', colorsError);
+
   const [colorDialogOpen, setColorDialogOpen] = useState(false);
+  const [selectedColor, setSelectedColor] = useState(null);
   const [sizeDialogOpen, setSizeDialogOpen] = useState(false);
+  const [selectedSize, setSelectedSize] = useState(null);
   const [productDialogOpen, setProductDialogOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -54,7 +62,36 @@ export default function Product() {
     fetchData();
   }, [dispatch]);
 
+  // Log colors data only when it changes
+  useEffect(() => {
+    if (colors.length > 0) {
+      console.log('Colors data updated:', {
+        count: colors.length,
+        colors: colors.map(c => ({ id: c.id, name: c.name, hex: c.hex }))
+      });
+    }
+  }, [colors]);
+
+  // Log loading and error states only when they change
+  useEffect(() => {
+    if (colorsLoading) {
+      console.log('Colors loading state changed:', colorsLoading);
+    }
+  }, [colorsLoading]);
+
+  useEffect(() => {
+    if (colorsError) {
+      console.error('Colors error state changed:', colorsError);
+    }
+  }, [colorsError]);
+
   const handleAddColor = () => {
+    setSelectedColor(null);
+    setColorDialogOpen(true);
+  };
+
+  const handleEditColor = (color) => {
+    setSelectedColor(color);
     setColorDialogOpen(true);
   };
 
@@ -72,8 +109,13 @@ export default function Product() {
 
   const handleSaveColor = async (formData) => {
     try {
-      await dispatch(addColor(formData)).unwrap();
-      toast.success('Color added successfully');
+      if (selectedColor) {
+        await dispatch(editColor({ id: selectedColor.id, ...formData })).unwrap();
+        toast.success('Color updated successfully');
+      } else {
+        await dispatch(addColor(formData)).unwrap();
+        toast.success('Color added successfully');
+      }
       setColorDialogOpen(false);
       dispatch(fetchColors());
     } catch (err) {
@@ -82,6 +124,12 @@ export default function Product() {
   };
 
   const handleAddSize = () => {
+    setSelectedSize(null);
+    setSizeDialogOpen(true);
+  };
+
+  const handleEditSize = (size) => {
+    setSelectedSize(size);
     setSizeDialogOpen(true);
   };
 
@@ -99,8 +147,13 @@ export default function Product() {
 
   const handleSaveSize = async (formData) => {
     try {
-      await dispatch(addSize(formData)).unwrap();
-      toast.success('Size added successfully');
+      if (selectedSize) {
+        await dispatch(editSize({ id: selectedSize.id, ...formData })).unwrap();
+        toast.success('Size updated successfully');
+      } else {
+        await dispatch(addSize(formData)).unwrap();
+        toast.success('Size added successfully');
+      }
       setSizeDialogOpen(false);
       dispatch(fetchSizes());
     } catch (err) {
@@ -109,6 +162,7 @@ export default function Product() {
   };
 
   const handleAddProduct = () => {
+    setSelectedProduct(null);
     setProductDialogOpen(true);
   };
 
@@ -180,6 +234,7 @@ export default function Product() {
         sizes: productData.sizes?.length || 0
       });
 
+      // Only add new product, no editing
       await dispatch(addProduct(productData)).unwrap();
       toast.success('Product added successfully');
       
@@ -190,6 +245,7 @@ export default function Product() {
       console.error('Error details:', {
         message: err.message,
         formData,
+        selectedProduct,
         stack: err.stack
       });
       toast.error(err?.message || 'Failed to save product');
@@ -342,6 +398,7 @@ export default function Product() {
           open={colorDialogOpen}
           onClose={() => setColorDialogOpen(false)}
           onSave={handleSaveColor}
+          color={selectedColor}
           loading={colorsLoading}
           isMobile={isMobile}
         />
@@ -350,14 +407,17 @@ export default function Product() {
           open={sizeDialogOpen}
           onClose={() => setSizeDialogOpen(false)}
           onSave={handleSaveSize}
+          size={selectedSize}
           loading={sizesLoading}
           isMobile={isMobile}
+          sizes={sizes}
         />
 
         <ProductDialog
           open={productDialogOpen}
           onClose={() => setProductDialogOpen(false)}
           onSave={handleSaveProduct}
+          product={null}
           colors={colors}
           sizes={sizes}
           categories={categories}

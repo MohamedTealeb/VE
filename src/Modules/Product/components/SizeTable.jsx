@@ -8,11 +8,14 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 
 export default function SizeTable({ 
-  sizes, 
+  sizes = [], 
   onAdd, 
   onEdit, 
-  onDelete 
+  onDelete
 }) {
+  // Ensure sizes is an array
+  const sizesArray = Array.isArray(sizes) ? sizes : [];
+
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', marginRight: '30px' }}>
@@ -45,7 +48,7 @@ export default function SizeTable({
             </TableRow>
           </TableHead>
           <TableBody>
-            {sizes.map((size) => (
+            {sizesArray.map((size) => (
               <TableRow hover tabIndex={-1} key={size.id}>
                 <TableCell>{size.label}</TableCell>
                 <TableCell>

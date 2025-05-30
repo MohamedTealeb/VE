@@ -12,7 +12,6 @@ export default function ProductTable({
   rowsPerPage, 
   onPageChange, 
   onRowsPerPageChange,
-  onEdit,
   onDelete,
   colors = [],
   sizes = [],
@@ -61,7 +60,6 @@ export default function ProductTable({
               <ProductTableRow
                 key={product.id}
                 product={product}
-                onEdit={onEdit}
                 onDelete={onDelete}
                 colorsArray={colorsArray}
                 sizesArray={sizesArray}

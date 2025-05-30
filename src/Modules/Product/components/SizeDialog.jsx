@@ -7,8 +7,12 @@ import {
   Button,
   TextField,
   Box,
-  CircularProgress
+  CircularProgress,
+  Chip
 } from '@mui/material';
+
+// Standard size options
+const STANDARD_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
 export default function SizeDialog({
   open,
@@ -16,7 +20,8 @@ export default function SizeDialog({
   onSave,
   size,
   loading,
-  isMobile
+  isMobile,
+  sizes = []
 }) {
   const [formData, setFormData] = useState({
     label: ''
@@ -42,10 +47,19 @@ export default function SizeDialog({
     }));
   };
 
+  const handleChipClick = (label) => {
+    setFormData(prev => ({
+      ...prev,
+      label
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSave(formData);
   };
+
+  const sizesArray = Array.isArray(sizes) ? sizes : [];
 
   return (
     <Dialog
@@ -77,6 +91,31 @@ export default function SizeDialog({
               size={isMobile ? "small" : "medium"}
               placeholder="e.g., S, M, L, XL"
             />
+            {/* Only show standard sizes when adding a new size */}
+            {!size && (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                {STANDARD_SIZES.map((s) => (
+                  <Chip
+                    key={s}
+                    label={s}
+                    onClick={() => handleChipClick(s)}
+                    sx={{ cursor: 'pointer' }}
+                  />
+                ))}
+              </Box>
+            )}
+            {sizesArray.length > 0 && (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                {sizesArray.map((s) => (
+                  <Chip
+                    key={s.id}
+                    label={s.label}
+                    onClick={() => handleChipClick(s.label)}
+                    sx={{ cursor: 'pointer' }}
+                  />
+                ))}
+              </Box>
+            )}
           </Box>
         </DialogContent>
         <DialogActions sx={{ 
