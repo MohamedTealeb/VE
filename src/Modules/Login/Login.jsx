@@ -34,7 +34,7 @@ export default function Login() {
       }
 
       toast.success('Logged in successfully!', { duration: 5000 });
-      console.log("Navigating to /home...");
+      
       navigate('/home');
     } catch (err) {
       console.error("Login error in component:", err);

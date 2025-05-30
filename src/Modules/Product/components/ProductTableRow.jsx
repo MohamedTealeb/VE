@@ -1,13 +1,11 @@
 import React from 'react';
 import { TableRow, TableCell, IconButton, Chip, Box, Typography } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const imageBaseUrl = import.meta.env.VITE_IMAGEURL;
 
 export default function ProductTableRow({ 
   product, 
-  onEdit, 
   onDelete, 
   colorsArray,
   sizesArray,
@@ -136,14 +134,6 @@ export default function ProductTableRow({
         </Box>
       </TableCell>
       <TableCell>
-        <IconButton
-          color="primary"
-          onClick={() => onEdit(product)}
-          size="small"
-          sx={{ borderRadius: '6px' }}
-        >
-          <EditIcon />
-        </IconButton>
         <IconButton
           color="error"
           onClick={() => onDelete(product)}

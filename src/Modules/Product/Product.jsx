@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Paper, Box, useMediaQuery, useTheme, Button, Typography } from '@mui/material';
-import { fetchColors, addColor, editColor, removeColor } from '../../redux/slice/ColorsSlice/Colors';
-import { fetchSizes, addSize, editSize, removeSize } from '../../redux/slice/SizesSlice/Sizes';
-import { fetchProducts, addProduct, editProduct, removeProduct } from '../../redux/slice/ProductsSlice/Products';
+import { fetchColors, addColor, removeColor } from '../../redux/slice/ColorsSlice/Colors';
+import { fetchSizes, addSize, removeSize } from '../../redux/slice/SizesSlice/Sizes';
+import { fetchProducts, addProduct, removeProduct } from '../../redux/slice/ProductsSlice/Products';
 import { fetchCategories } from '../../redux/slice/CategoriesSlice/Categories';
 import ProductTable from './components/ProductTable';
 import ColorTable from './components/ColorTable';
@@ -12,10 +12,13 @@ import ColorDialog from './components/ColorDialog';
 import SizeDialog from './components/SizeDialog';
 import ProductDialog from './components/ProductDialog';
 import AddIcon from '@mui/icons-material/Add';
+import LogoutIcon from '@mui/icons-material/Logout';
 import toast, { Toaster } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 export default function Product() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
@@ -25,17 +28,9 @@ export default function Product() {
   const { products = [], loading: productsLoading, error: productsError } = useSelector((state) => state.products);
   const { categories = [], loading: categoriesLoading, error: categoriesError } = useSelector((state) => state.categories);
 
-  // Debug logs
-  console.log('Colors from Redux:', colors);
-  console.log('Colors Loading:', colorsLoading);
-  console.log('Colors Error:', colorsError);
-
   const [colorDialogOpen, setColorDialogOpen] = useState(false);
-  const [selectedColor, setSelectedColor] = useState(null);
   const [sizeDialogOpen, setSizeDialogOpen] = useState(false);
-  const [selectedSize, setSelectedSize] = useState(null);
   const [productDialogOpen, setProductDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -59,36 +54,7 @@ export default function Product() {
     fetchData();
   }, [dispatch]);
 
-  // Log colors data only when it changes
-  useEffect(() => {
-    if (colors.length > 0) {
-      console.log('Colors data updated:', {
-        count: colors.length,
-        colors: colors.map(c => ({ id: c.id, name: c.name, hex: c.hex }))
-      });
-    }
-  }, [colors]);
-
-  // Log loading and error states only when they change
-  useEffect(() => {
-    if (colorsLoading) {
-      console.log('Colors loading state changed:', colorsLoading);
-    }
-  }, [colorsLoading]);
-
-  useEffect(() => {
-    if (colorsError) {
-      console.error('Colors error state changed:', colorsError);
-    }
-  }, [colorsError]);
-
   const handleAddColor = () => {
-    setSelectedColor(null);
-    setColorDialogOpen(true);
-  };
-
-  const handleEditColor = (color) => {
-    setSelectedColor(color);
     setColorDialogOpen(true);
   };
 
@@ -106,13 +72,8 @@ export default function Product() {
 
   const handleSaveColor = async (formData) => {
     try {
-      if (selectedColor) {
-        await dispatch(editColor({ id: selectedColor.id, ...formData })).unwrap();
-        toast.success('Color updated successfully');
-      } else {
-        await dispatch(addColor(formData)).unwrap();
-        toast.success('Color added successfully');
-      }
+      await dispatch(addColor(formData)).unwrap();
+      toast.success('Color added successfully');
       setColorDialogOpen(false);
       dispatch(fetchColors());
     } catch (err) {
@@ -121,12 +82,6 @@ export default function Product() {
   };
 
   const handleAddSize = () => {
-    setSelectedSize(null);
-    setSizeDialogOpen(true);
-  };
-
-  const handleEditSize = (size) => {
-    setSelectedSize(size);
     setSizeDialogOpen(true);
   };
 
@@ -144,13 +99,8 @@ export default function Product() {
 
   const handleSaveSize = async (formData) => {
     try {
-      if (selectedSize) {
-        await dispatch(editSize({ id: selectedSize.id, ...formData })).unwrap();
-        toast.success('Size updated successfully');
-      } else {
-        await dispatch(addSize(formData)).unwrap();
-        toast.success('Size added successfully');
-      }
+      await dispatch(addSize(formData)).unwrap();
+      toast.success('Size added successfully');
       setSizeDialogOpen(false);
       dispatch(fetchSizes());
     } catch (err) {
@@ -159,7 +109,6 @@ export default function Product() {
   };
 
   const handleAddProduct = () => {
-    setSelectedProduct(null);
     setProductDialogOpen(true);
   };
 
@@ -231,7 +180,6 @@ export default function Product() {
         sizes: productData.sizes?.length || 0
       });
 
-      // Only add new product, no editing
       await dispatch(addProduct(productData)).unwrap();
       toast.success('Product added successfully');
       
@@ -242,7 +190,6 @@ export default function Product() {
       console.error('Error details:', {
         message: err.message,
         formData,
-        selectedProduct,
         stack: err.stack
       });
       toast.error(err?.message || 'Failed to save product');
@@ -256,6 +203,12 @@ export default function Product() {
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    toast.success('Logged out successfully');
+    navigate('/login');
   };
 
   if (colorsLoading || sizesLoading || productsLoading || categoriesLoading) {
@@ -275,30 +228,42 @@ export default function Product() {
   }
 
   return (
-    <Box sx={{ bgcolor: 'white', minHeight: '100vh', p: { xs: 1, sm: 2, md: 3 }, overflow: 'hidden' }}>
+    <Box sx={{ 
+      bgcolor: 'white', 
+      minHeight: '100vh', 
+      p: { xs: 1, sm: 2, md: 3 },
+      position: 'relative'
+    }}>
       <Toaster />
       <Paper
         sx={{
           p: { xs: 1, sm: 2, md: 3 },
           bgcolor: 'white',
           borderRadius: '8px',
-          marginTop: '20px',
-          width: '100%',
-          overflow: 'hidden'
+          marginTop: { xs: '60px', sm: '50px' },
+          width: '100%'
         }}
       >
         <Box sx={{ 
           display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
           justifyContent: 'space-between', 
-          alignItems: 'center',
-          mb: 3
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          mb: 3,
+          gap: 2
         }}>
           <Typography variant="h5" component="h2">
             Products
           </Typography>
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            flexWrap: 'wrap',
+            gap: 1,
+            width: { xs: '100%', sm: 'auto' }
+          }}>
             <Button
               variant="contained"
+              fullWidth={isMobile}
               sx={{ 
                 backgroundColor: 'black',
                 borderRadius: '8px',
@@ -313,6 +278,7 @@ export default function Product() {
             </Button>
             <Button
               variant="contained"
+              fullWidth={isMobile}
               sx={{ 
                 backgroundColor: 'black',
                 borderRadius: '8px',
@@ -327,6 +293,7 @@ export default function Product() {
             </Button>
             <Button
               variant="contained"
+              fullWidth={isMobile}
               sx={{ 
                 backgroundColor: 'black',
                 borderRadius: '8px',
@@ -338,6 +305,21 @@ export default function Product() {
               onClick={handleAddProduct}
             >
               Add Product
+            </Button>
+            <Button
+              variant="contained"
+              fullWidth={isMobile}
+              color="error"
+              sx={{ 
+                borderRadius: '8px',
+                '&:hover': {
+                  backgroundColor: 'rgba(211, 47, 47, 0.8)'
+                }
+              }}
+              startIcon={<LogoutIcon />}
+              onClick={handleLogout}
+            >
+              Logout
             </Button>
           </Box>
         </Box>
@@ -360,7 +342,6 @@ export default function Product() {
           open={colorDialogOpen}
           onClose={() => setColorDialogOpen(false)}
           onSave={handleSaveColor}
-          color={selectedColor}
           loading={colorsLoading}
           isMobile={isMobile}
         />
@@ -369,7 +350,6 @@ export default function Product() {
           open={sizeDialogOpen}
           onClose={() => setSizeDialogOpen(false)}
           onSave={handleSaveSize}
-          size={selectedSize}
           loading={sizesLoading}
           isMobile={isMobile}
         />
@@ -378,7 +358,6 @@ export default function Product() {
           open={productDialogOpen}
           onClose={() => setProductDialogOpen(false)}
           onSave={handleSaveProduct}
-          product={null}
           colors={colors}
           sizes={sizes}
           categories={categories}
