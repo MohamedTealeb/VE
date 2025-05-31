@@ -6,19 +6,19 @@ import {
 import VisibilityIcon from '@mui/icons-material/Visibility';
 
 const columns = [
-  { id: 'orderNumber', label: 'Order Number', minWidth: 120 },
-  { id: 'customerName', label: 'Customer Name', minWidth: 150 },
-  { id: 'totalAmount', label: 'Total Amount', minWidth: 120 },
+  { id: 'id', label: 'Order ID', minWidth: 100 },
+  { id: 'createdAt', label: 'Created At', minWidth: 150 },
+  { id: 'user', label: 'Email', minWidth: 200 },
+  { id: 'product', label: 'Product Name', minWidth: 150 },
   { id: 'status', label: 'Status', minWidth: 120 },
-  { id: 'createdAt', label: 'Order Date', minWidth: 150 },
   { id: 'actions', label: 'Actions', minWidth: 100 },
 ];
 
 const statusColors = {
-  pending: 'warning',
-  processing: 'info',
-  completed: 'success',
-  cancelled: 'error'
+  PENDING: 'warning',
+  PROCESSING: 'info',
+  COMPLETED: 'success',
+  CANCELLED: 'error'
 };
 
 export default function OrderTable({
@@ -29,6 +29,10 @@ export default function OrderTable({
   onRowsPerPageChange,
   onView
 }) {
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleString();
+  };
+
   return (
     <>
       <TableContainer sx={{ maxHeight: 600 }}>
@@ -61,16 +65,30 @@ export default function OrderTable({
                         <TableCell key={column.id} align={column.align || 'left'}>
                           <Chip
                             label={order.status}
-                            color={statusColors[order.status.toLowerCase()]}
+                            color={statusColors[order.status]}
                             size="small"
                           />
                         </TableCell>
                       );
                     }
-                    if (column.id === 'totalAmount') {
+                    if (column.id === 'user') {
                       return (
                         <TableCell key={column.id} align={column.align || 'left'}>
-                          ${order.totalAmount.toFixed(2)}
+                          {order.user?.email}
+                        </TableCell>
+                      );
+                    }
+                    if (column.id === 'product') {
+                      return (
+                        <TableCell key={column.id} align={column.align || 'left'}>
+                          {order.product?.name}
+                        </TableCell>
+                      );
+                    }
+                    if (column.id === 'createdAt') {
+                      return (
+                        <TableCell key={column.id} align={column.align || 'left'}>
+                          {formatDate(order.createdAt)}
                         </TableCell>
                       );
                     }

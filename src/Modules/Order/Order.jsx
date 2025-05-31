@@ -6,6 +6,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import OrderTable from './components/OrderTable';
 import OrderDetailsDialog from './components/OrderDetailsDialog';
+import { fetchOrders, updateStatus } from '../../redux/slice/OrdersSlice/Orders';
 
 export default function Order() {
   const dispatch = useDispatch();
@@ -25,7 +26,7 @@ export default function Order() {
       navigate('/login');
       return;
     }
-    // TODO: Add fetchOrders dispatch here
+    dispatch(fetchOrders());
   }, [dispatch, navigate]);
 
   useEffect(() => {
@@ -53,7 +54,7 @@ export default function Order() {
   const handleUpdateStatus = async (orderId, newStatus) => {
     try {
       setUpdateLoading(true);
-      // TODO: Add update order status logic here
+      await dispatch(updateStatus({ id: orderId, status: newStatus })).unwrap();
       toast.success('Order status updated successfully');
     } catch (error) {
       toast.error(error.message || 'Failed to update order status');

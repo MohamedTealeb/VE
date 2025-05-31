@@ -65,7 +65,7 @@ export default function Category() {
   const handleOpenDialog = (category = null) => {
     if (category) {
       setFormData({ name: category.name, image: null });
-      setImagePreview(`${imageBaseUrl}/${category.imageurl}`);
+      setImagePreview(`${imageBaseUrl}/${category.image}`);
       setEditId(category.id);
     } else {
       setFormData({ name: '', image: null });

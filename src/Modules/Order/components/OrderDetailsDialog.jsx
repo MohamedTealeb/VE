@@ -6,10 +6,10 @@ import {
 } from '@mui/material';
 
 const statusColors = {
-  pending: 'warning',
-  processing: 'info',
-  completed: 'success',
-  cancelled: 'error'
+  PENDING: 'warning',
+  PROCESSING: 'info',
+  COMPLETED: 'success',
+  CANCELLED: 'error'
 };
 
 export default function OrderDetailsDialog({
@@ -29,46 +29,45 @@ export default function OrderDetailsDialog({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h3 className="font-semibold">Order Information</h3>
-              <p>Order Number: {order.orderNumber}</p>
-              <p>Date: {order.createdAt}</p>
-              <p>Status: 
+              <p>Order ID: {order.id}</p>
+              <p>Date: {new Date(order.createdAt).toLocaleDateString()}</p>
+              <div className="flex items-center">
+                <span>Status: </span>
                 <Chip
                   label={order.status}
-                  color={statusColors[order.status.toLowerCase()]}
+                  color={statusColors[order.status]}
                   size="small"
                   className="ml-2"
                 />
-              </p>
+              </div>
             </div>
             <div>
-              <h3 className="font-semibold">Customer Information</h3>
-              <p>Name: {order.customerName}</p>
-              <p>Email: {order.customerEmail}</p>
-              <p>Phone: {order.customerPhone}</p>
+              <h3 className="font-semibold">User Information</h3>
+              <p>Name: {order.user?.firstName} {order.user?.lastName}</p>
+              <p>Email: {order.user?.email}</p>
+              <p>Phone: {order.user?.phoneNumber}</p>
             </div>
           </div>
 
           <div>
-            <h3 className="font-semibold">Order Items</h3>
+            <h3 className="font-semibold">Product Information</h3>
             <TableContainer>
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Product</TableCell>
-                    <TableCell>Quantity</TableCell>
+                    <TableCell>Product Name</TableCell>
                     <TableCell>Price</TableCell>
-                    <TableCell>Total</TableCell>
+                    <TableCell>Material</TableCell>
+                    <TableCell>Target Gender</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {order.items?.map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{item.productName}</TableCell>
-                      <TableCell>{item.quantity}</TableCell>
-                      <TableCell>${item.price.toFixed(2)}</TableCell>
-                      <TableCell>${(item.quantity * item.price).toFixed(2)}</TableCell>
-                    </TableRow>
-                  ))}
+                  <TableRow>
+                    <TableCell>{order.product?.name}</TableCell>
+                    <TableCell>${order.product?.price}</TableCell>
+                    <TableCell>{order.product?.Material}</TableCell>
+                    <TableCell>{order.product?.target_gender}</TableCell>
+                  </TableRow>
                 </TableBody>
               </Table>
             </TableContainer>
@@ -76,31 +75,31 @@ export default function OrderDetailsDialog({
 
           <div className="flex justify-between items-center">
             <div>
-              <h3 className="font-semibold">Total Amount</h3>
-              <p className="text-lg">${order.totalAmount.toFixed(2)}</p>
+              <h3 className="font-semibold">Product Description</h3>
+              <p className="text-sm">{order.product?.discreption}</p>
             </div>
             <div className="space-x-2">
               <Button
                 variant="contained"
                 color="primary"
-                onClick={() => onUpdateStatus(order.id, 'processing')}
-                disabled={loading || order.status === 'processing'}
+                onClick={() => onUpdateStatus(order.id, 'PROCESSING')}
+                disabled={loading || order.status === 'PROCESSING'}
               >
                 Process
               </Button>
               <Button
                 variant="contained"
                 color="success"
-                onClick={() => onUpdateStatus(order.id, 'completed')}
-                disabled={loading || order.status === 'completed'}
+                onClick={() => onUpdateStatus(order.id, 'COMPLETED')}
+                disabled={loading || order.status === 'COMPLETED'}
               >
                 Complete
               </Button>
               <Button
                 variant="contained"
                 color="error"
-                onClick={() => onUpdateStatus(order.id, 'cancelled')}
-                disabled={loading || order.status === 'cancelled'}
+                onClick={() => onUpdateStatus(order.id, 'CANCELLED')}
+                disabled={loading || order.status === 'CANCELLED'}
               >
                 Cancel
               </Button>
