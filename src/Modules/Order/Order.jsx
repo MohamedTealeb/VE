@@ -6,7 +6,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import OrderTable from './components/OrderTable';
 import OrderDetailsDialog from './components/OrderDetailsDialog';
-import { fetchOrders, updateStatus } from '../../redux/slice/OrdersSlice/Orders';
+import { fetchOrders, updateStatus, deleteOrderById } from '../../redux/slice/OrdersSlice/Orders';
 
 export default function Order() {
   const dispatch = useDispatch();
@@ -54,8 +54,13 @@ export default function Order() {
   const handleUpdateStatus = async (orderId, newStatus) => {
     try {
       setUpdateLoading(true);
-      await dispatch(updateStatus({ id: orderId, status: newStatus })).unwrap();
-      toast.success('Order status updated successfully');
+      if (newStatus === 'CANCELLED') {
+        await dispatch(deleteOrderById(orderId)).unwrap();
+        toast.success('Order cancelled and deleted successfully');
+      } else {
+        await dispatch(updateStatus({ id: orderId, status: newStatus })).unwrap();
+        toast.success('Order status updated successfully');
+      }
     } catch (error) {
       toast.error(error.message || 'Failed to update order status');
     } finally {

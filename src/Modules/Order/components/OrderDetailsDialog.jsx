@@ -21,6 +21,15 @@ export default function OrderDetailsDialog({
 }) {
   if (!order) return null;
 
+  const handleCancel = async () => {
+    try {
+      await onUpdateStatus(order.id, 'CANCELLED');
+      onClose();
+    } catch (error) {
+      console.error('Failed to cancel order:', error);
+    }
+  };
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>Order Details</DialogTitle>
@@ -81,14 +90,6 @@ export default function OrderDetailsDialog({
             <div className="space-x-2">
               <Button
                 variant="contained"
-                color="primary"
-                onClick={() => onUpdateStatus(order.id, 'PROCESSING')}
-                disabled={loading || order.status === 'PROCESSING'}
-              >
-                Process
-              </Button>
-              <Button
-                variant="contained"
                 color="success"
                 onClick={() => onUpdateStatus(order.id, 'COMPLETED')}
                 disabled={loading || order.status === 'COMPLETED'}
@@ -98,7 +99,7 @@ export default function OrderDetailsDialog({
               <Button
                 variant="contained"
                 color="error"
-                onClick={() => onUpdateStatus(order.id, 'CANCELLED')}
+                onClick={handleCancel}
                 disabled={loading || order.status === 'CANCELLED'}
               >
                 Cancel

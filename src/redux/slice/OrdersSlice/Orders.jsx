@@ -2,7 +2,8 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import {
   getAllOrders,
   getOrderById,
-  updateOrderStatus
+  updateOrderStatus,
+  deleteOrder
 } from '../../../Apis/Orders/Orders';
 
 // Async thunks
@@ -36,6 +37,18 @@ export const updateStatus = createAsyncThunk(
     try {
       const response = await updateOrderStatus(id, status);
       return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const deleteOrderById = createAsyncThunk(
+  'orders/deleteOrder',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await deleteOrder(id);
+      return { id, ...response };
     } catch (error) {
       return rejectWithValue(error);
     }
@@ -111,6 +124,20 @@ const ordersSlice = createSlice({
         state.success = true;
       })
       .addCase(updateStatus.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Delete Order
+      .addCase(deleteOrderById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteOrderById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.orders = state.orders.filter(order => order.id !== action.payload.id);
+        state.success = true;
+      })
+      .addCase(deleteOrderById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

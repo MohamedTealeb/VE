@@ -16,11 +16,11 @@ const getColumns = (isMobile, isTablet) => {
   ];
 
   if (isMobile) {
-    return baseColumns.filter(col => ['fullName', 'role', 'actions'].includes(col.id));
+    return baseColumns.filter(col => ['fullName', 'email', 'phoneNumber', 'role', 'actions'].includes(col.id));
   }
 
   if (isTablet) {
-    return baseColumns.filter(col => ['fullName', 'email', 'role', 'actions'].includes(col.id));
+    return baseColumns.filter(col => ['fullName', 'email', 'phoneNumber', 'role', 'actions'].includes(col.id));
   }
 
   return baseColumns;

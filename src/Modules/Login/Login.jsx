@@ -62,13 +62,13 @@ export default function Login() {
           />
         </div>
 
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-36">
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-36 bg-gradient-to-r from-[#050608] to-[#050608]">
           <div className="w-full max-w-md text-white">
             <h1 className="text-2xl font-semibold mb-4">Login</h1>
 
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
-                <label htmlFor="username" className="block text-white">
+                <label htmlFor="username" className="block text-white mb-2">
                   Email
                 </label>
                 <input
@@ -76,14 +76,15 @@ export default function Login() {
                   id="username"
                   name="username"
                   required
-                  className="w-full border border-black text-black rounded-md bg-white py-2 px-3"
+                  className="w-full border border-black text-black rounded-md bg-white py-2 px-3 text-base"
                   autoComplete="off"
                   onChange={clearErrorToast}
+                  placeholder="Enter your email"
                 />
               </div>
 
               <div className="mb-4 relative">
-                <label htmlFor="password" className="block text-white">
+                <label htmlFor="password" className="block text-white mb-2">
                   Password
                 </label>
                 <input
@@ -91,8 +92,9 @@ export default function Login() {
                   id="password"
                   name="password"
                   required
-                  className="w-full border border-black text-black rounded-md bg-white py-2 px-3 pr-10"
+                  className="w-full border border-black text-black rounded-md bg-white py-2 px-3 pr-10 text-base"
                   onChange={clearErrorToast}
+                  placeholder="Enter your password"
                 />
                 <button
                   type="button"

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { styled, useTheme } from '@mui/material/styles';
 import {
   Box,
@@ -13,7 +13,8 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  useMediaQuery
+  useMediaQuery,
+  Badge
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -27,6 +28,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../../assets/WhatsApp Image 2025-05-06 at 12.31.39_3f99cae6.jpg';
+import { getAllOrders } from '../../Apis/Orders/Orders';
 
 const drawerWidth = 240;
 
@@ -79,8 +81,27 @@ export default function Sidebar() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [open, setOpen] = React.useState(!isMobile);
+  const [orderCount, setOrderCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const fetchOrderCount = async () => {
+      try {
+        const response = await getAllOrders();
+        if (Array.isArray(response)) {
+          setOrderCount(response.length);
+        }
+      } catch (error) {
+        console.error('Error fetching order count:', error);
+      }
+    };
+
+    fetchOrderCount();
+    // Refresh order count every minute
+    const interval = setInterval(fetchOrderCount, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -95,7 +116,15 @@ export default function Sidebar() {
     { text: 'Users', icon: <PeopleIcon />, path: '/users' },
     { text: 'Product', icon: <InventoryIcon />, path: '/product' },
     { text: 'Category', icon: <CategoryIcon />, path: '/category' },
-    { text: 'Order', icon: <ShoppingCartIcon />, path: '/orders' },
+    { 
+      text: 'Order', 
+      icon: (
+        <Badge badgeContent={orderCount} color="error">
+          <ShoppingCartIcon />
+        </Badge>
+      ), 
+      path: '/orders' 
+    },
   ];
 
   return (

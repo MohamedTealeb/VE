@@ -60,7 +60,7 @@ export const updateOrderStatus = async (id, status) => {
   try {
     const token = getAuthToken();
     const response = await axios.patch(
-      `${import.meta.env.VITE_BASEURL}/orders/${id}/status`,
+      `${import.meta.env.VITE_BASEURL}/orders/${id}`,
       { status },
       {
         headers: {
@@ -81,5 +81,32 @@ export const updateOrderStatus = async (id, status) => {
       throw { message: 'Access denied', status: 403 };
     }
     throw error.response?.data || { message: 'Failed to update order status' };
+  }
+};
+
+export const deleteOrder = async (id) => {
+  try {
+    const token = getAuthToken();
+    const response = await axios.delete(
+      `${import.meta.env.VITE_BASEURL}/orders/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (error.message === 'No authentication token found') {
+      throw { message: 'Please login to access this resource' };
+    }
+    if (error.response?.status === 401) {
+      throw { message: 'Your session has expired. Please login again' };
+    }
+    if (error.response?.status === 403) {
+      throw { message: 'Access denied', status: 403 };
+    }
+    throw error.response?.data || { message: 'Failed to delete order' };
   }
 }; 
