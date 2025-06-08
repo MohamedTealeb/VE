@@ -8,7 +8,7 @@ import {
 const statusColors = {
   PENDING: 'warning',
   PROCESSING: 'info',
-  COMPLETED: 'success',
+  ACCEPTED: 'success',
   CANCELLED: 'error'
 };
 
@@ -17,16 +17,17 @@ export default function OrderDetailsDialog({
   onClose,
   order,
   onUpdateStatus,
-  loading
+  loading,
+  onRequestCancel
 }) {
   if (!order) return null;
 
-  const handleCancel = async () => {
+  const handleAccept = async () => {
     try {
-      await onUpdateStatus(order.id, 'CANCELLED');
+      await onUpdateStatus(order.id, 'ACCEPTED');
       onClose();
     } catch (error) {
-      console.error('Failed to cancel order:', error);
+      console.error('Failed to accept order:', error);
     }
   };
 
@@ -34,40 +35,109 @@ export default function OrderDetailsDialog({
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>Order Details</DialogTitle>
       <DialogContent>
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-semibold">Order Information</h3>
-              <p>Order ID: {order.id}</p>
-              <p>Date: {new Date(order.createdAt).toLocaleDateString()}</p>
-              <div className="flex items-center">
-                <span>Status: </span>
+        <div className="space-y-6">
+          {/* Order Information */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold mb-3">Order Information</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-600">Order ID</p>
+                <p className="font-medium">{order.id}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Product ID</p>
+                <p className="font-medium">{order.productId}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">User ID</p>
+                <p className="font-medium">{order.userId}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Status</p>
                 <Chip
                   label={order.status}
                   color={statusColors[order.status]}
                   size="small"
-                  className="ml-2"
+                  className="mt-1"
                 />
               </div>
-            </div>
-            <div>
-              <h3 className="font-semibold">User Information</h3>
-              <p>Name: {order.user?.firstName} {order.user?.lastName}</p>
-              <p>Email: {order.user?.email}</p>
-              <p>Phone: {order.user?.phoneNumber}</p>
+              <div>
+                <p className="text-sm text-gray-600">Quantity</p>
+                <p className="font-medium">{order.quantity}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Total Amount</p>
+                <p className="font-medium">${order.total}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Created At</p>
+                <p className="font-medium">{new Date(order.createdAt).toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Updated At</p>
+                <p className="font-medium">{new Date(order.updatedAt).toLocaleString()}</p>
+              </div>
             </div>
           </div>
 
-          <div>
-            <h3 className="font-semibold">Product Information</h3>
+          {/* Shipping Information */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold mb-3">Shipping Information</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-600">Address</p>
+                <p className="font-medium">{order.address}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Phone</p>
+                <p className="font-medium">{order.phone}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* User Information */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold mb-3">User Information</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-600">User ID</p>
+                <p className="font-medium">{order.user?.id}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Role</p>
+                <p className="font-medium">{order.user?.role}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Name</p>
+                <p className="font-medium">{order.user?.firstName} {order.user?.lastName}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Email</p>
+                <p className="font-medium">{order.user?.email}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Phone Number</p>
+                <p className="font-medium">{order.user?.phoneNumber}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Created At</p>
+                <p className="font-medium">{new Date(order.user?.createdAt).toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Product Information */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold mb-3">Product Information</h3>
             <TableContainer>
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Product Name</TableCell>
+                    <TableCell>Name</TableCell>
                     <TableCell>Price</TableCell>
                     <TableCell>Material</TableCell>
                     <TableCell>Target Gender</TableCell>
+                    <TableCell>Category</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -76,35 +146,37 @@ export default function OrderDetailsDialog({
                     <TableCell>${order.product?.price}</TableCell>
                     <TableCell>{order.product?.Material}</TableCell>
                     <TableCell>{order.product?.target_gender}</TableCell>
+                    <TableCell>{order.product?.category}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
             </TableContainer>
           </div>
 
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="font-semibold">Product Description</h3>
-              <p className="text-sm">{order.product?.discreption}</p>
-            </div>
-            <div className="space-x-2">
-              <Button
-                variant="contained"
-                color="success"
-                onClick={() => onUpdateStatus(order.id, 'COMPLETED')}
-                disabled={loading || order.status === 'COMPLETED'}
-              >
-                Complete
-              </Button>
-              <Button
-                variant="contained"
-                color="error"
-                onClick={handleCancel}
-                disabled={loading || order.status === 'CANCELLED'}
-              >
-                Cancel
-              </Button>
-            </div>
+          {/* Product Description */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold mb-3">Product Description</h3>
+            <p className="text-sm">{order.product?.discreption}</p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end space-x-2">
+            <Button
+              variant="contained"
+              color="success"
+              onClick={handleAccept}
+              disabled={loading || order.status === 'ACCEPTED'}
+            >
+              Accept
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={onRequestCancel}
+              disabled={loading || order.status === 'CANCELLED'}
+            >
+              Cancel
+            </Button>
           </div>
         </div>
       </DialogContent>

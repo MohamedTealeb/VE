@@ -9,9 +9,9 @@ import {
 // Async thunks
 export const fetchOrders = createAsyncThunk(
   'orders/fetchOrders',
-  async (_, { rejectWithValue }) => {
+  async (filters = {}, { rejectWithValue }) => {
     try {
-      const response = await getAllOrders();
+      const response = await getAllOrders(filters);
       return response;
     } catch (error) {
       return rejectWithValue(error);
@@ -36,7 +36,7 @@ export const updateStatus = createAsyncThunk(
   async ({ id, status }, { rejectWithValue }) => {
     try {
       const response = await updateOrderStatus(id, status);
-      return response;
+      return { id, status, ...response };
     } catch (error) {
       return rejectWithValue(error);
     }
@@ -114,12 +114,20 @@ const ordersSlice = createSlice({
       })
       .addCase(updateStatus.fulfilled, (state, action) => {
         state.loading = false;
+        // Update the order in the orders array
         const index = state.orders.findIndex(order => order.id === action.payload.id);
         if (index !== -1) {
-          state.orders[index] = action.payload;
+          state.orders[index] = {
+            ...state.orders[index],
+            status: action.payload.status
+          };
         }
+        // Update selected order if it exists
         if (state.selectedOrder?.id === action.payload.id) {
-          state.selectedOrder = action.payload;
+          state.selectedOrder = {
+            ...state.selectedOrder,
+            status: action.payload.status
+          };
         }
         state.success = true;
       })

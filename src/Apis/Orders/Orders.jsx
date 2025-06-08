@@ -8,15 +8,22 @@ const getAuthToken = () => {
   return token;
 };
 
-export const getAllOrders = async () => {
+export const getAllOrders = async (filters = {}) => {
   try {
     const token = getAuthToken();
-    const response = await axios.get(`${import.meta.env.VITE_BASEURL}/orders`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
+    const params = new URLSearchParams();
+    if (filters.userId) params.append('userId', filters.userId);
+    if (filters.productId) params.append('productId', filters.productId);
+
+    const response = await axios.get(
+      `${import.meta.env.VITE_BASEURL}/orders?${params.toString()}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       }
-    });
+    );
     return response.data;
   } catch (error) {
     if (error.message === 'No authentication token found') {
@@ -59,7 +66,8 @@ export const getOrderById = async (id) => {
 export const updateOrderStatus = async (id, status) => {
   try {
     const token = getAuthToken();
-    const response = await axios.patch(
+    console.log('Updating order status:', { id, status }); // Debug log
+    const response = await axios.put(
       `${import.meta.env.VITE_BASEURL}/orders/${id}`,
       { status },
       {
@@ -69,8 +77,10 @@ export const updateOrderStatus = async (id, status) => {
         }
       }
     );
+    console.log('Update response:', response.data); // Debug log
     return response.data;
   } catch (error) {
+    console.error('Update error:', error.response?.data || error); // Debug log
     if (error.message === 'No authentication token found') {
       throw { message: 'Please login to access this resource' };
     }

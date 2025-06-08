@@ -15,6 +15,9 @@ import AddIcon from '@mui/icons-material/Add';
 import LogoutIcon from '@mui/icons-material/Logout';
 import toast, { Toaster } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogActions from '@mui/material/DialogActions';
 
 export default function Product() {
   const dispatch = useDispatch();
@@ -41,6 +44,8 @@ export default function Product() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState(null);
 
   // Fetch all data
   useEffect(() => {
@@ -167,14 +172,12 @@ export default function Product() {
   };
 
   const handleDeleteProduct = async (product) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      try {
-        await dispatch(removeProduct(product.id)).unwrap();
-        toast.success('Product deleted successfully');
-        dispatch(fetchProducts());
-      } catch (err) {
-        toast.error(err?.message || 'Failed to delete product');
-      }
+    try {
+      await dispatch(removeProduct(product.id)).unwrap();
+      toast.success('Product deleted successfully');
+      dispatch(fetchProducts());
+    } catch (err) {
+      toast.error(err?.message || 'Failed to delete product');
     }
   };
 
@@ -265,6 +268,19 @@ export default function Product() {
     localStorage.removeItem('token');
     toast.success('Logged out successfully');
     navigate('/login');
+  };
+
+  const handleRequestDeleteProduct = (product) => {
+    setProductToDelete(product);
+    setConfirmDialogOpen(true);
+  };
+
+  const handleConfirmDeleteProduct = async () => {
+    if (productToDelete) {
+      await handleDeleteProduct(productToDelete);
+    }
+    setConfirmDialogOpen(false);
+    setProductToDelete(null);
   };
 
   if (colorsLoading || sizesLoading || productsLoading || categoriesLoading) {
@@ -389,7 +405,7 @@ export default function Product() {
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          onDelete={handleDeleteProduct}
+          onDelete={handleRequestDeleteProduct}
           isMobile={isMobile}
           isTablet={isTablet}
         />
@@ -424,6 +440,22 @@ export default function Product() {
           loading={productsLoading}
           isMobile={isMobile}
         />
+
+        <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)}>
+          <DialogTitle>Are you sure you want to delete this product?</DialogTitle>
+          <DialogActions>
+            <Button onClick={() => setConfirmDialogOpen(false)} color="primary">
+              No
+            </Button>
+            <Button
+              onClick={handleConfirmDeleteProduct}
+              color="error"
+              variant="contained"
+            >
+              Yes
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Paper>
     </Box>
   );

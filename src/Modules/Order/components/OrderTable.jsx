@@ -9,6 +9,8 @@ const columns = [
   { id: 'id', label: 'Order ID', minWidth: 100 },
   { id: 'createdAt', label: 'Created At', minWidth: 150 },
   { id: 'user', label: 'Email', minWidth: 200 },
+  { id: 'orderPhone', label: 'Order Phone', minWidth: 150 },
+  { id: 'userPhone', label: 'User Phone', minWidth: 150 },
   { id: 'product', label: 'Product Name', minWidth: 150 },
   { id: 'status', label: 'Status', minWidth: 120 },
   { id: 'actions', label: 'Actions', minWidth: 100 },
@@ -17,7 +19,7 @@ const columns = [
 const statusColors = {
   PENDING: 'warning',
   PROCESSING: 'info',
-  COMPLETED: 'success',
+  ACCEPTED: 'success',
   CANCELLED: 'error'
 };
 
@@ -75,6 +77,20 @@ export default function OrderTable({
                       return (
                         <TableCell key={column.id} align={column.align || 'left'}>
                           {order.user?.email}
+                        </TableCell>
+                      );
+                    }
+                    if (column.id === 'orderPhone') {
+                      return (
+                        <TableCell key={column.id} align={column.align || 'left'}>
+                          {order.phone}
+                        </TableCell>
+                      );
+                    }
+                    if (column.id === 'userPhone') {
+                      return (
+                        <TableCell key={column.id} align={column.align || 'left'}>
+                          {order.user?.phoneNumber}
                         </TableCell>
                       );
                     }
