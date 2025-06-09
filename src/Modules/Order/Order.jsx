@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Paper, CircularProgress, TextField, Button, IconButton } from '@mui/material';
+import { Paper, CircularProgress, TextField, Button, IconButton, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
@@ -24,6 +24,7 @@ export default function Order() {
   const [updateLoading, setUpdateLoading] = React.useState(false);
   const [userIdFilter, setUserIdFilter] = React.useState('');
   const [productIdFilter, setProductIdFilter] = React.useState('');
+  const [statusFilter, setStatusFilter] = React.useState('all');
   const [showFilters, setShowFilters] = React.useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = React.useState(false);
   const [orderToDelete, setOrderToDelete] = React.useState(null);
@@ -44,6 +45,24 @@ export default function Order() {
     }
   }, [error]);
 
+  // Filter orders based on current filters
+  const filteredOrders = React.useMemo(() => {
+    if (!orders) return [];
+    
+    return orders
+      .filter(order => {
+        const matchesUserId = !userIdFilter || order.userId?.toString().includes(userIdFilter);
+        const matchesProductId = !productIdFilter || order.productId?.toString().includes(productIdFilter);
+        const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+        
+        return matchesUserId && matchesProductId && matchesStatus;
+      })
+      .sort((a, b) => {
+        // Sort by createdAt in descending order (newest first)
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+  }, [orders, userIdFilter, productIdFilter, statusFilter]);
+
   const handleChangePage = (event, newPage) => setPage(newPage);
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(+event.target.value);
@@ -63,14 +82,8 @@ export default function Order() {
   const handleUpdateStatus = async (orderId, newStatus) => {
     try {
       setUpdateLoading(true);
-      if (newStatus === 'CANCELLED') {
-        await dispatch(deleteOrderById(orderId)).unwrap();
-        toast.success('Order cancelled and deleted successfully');
-      } else {
-        await dispatch(updateStatus({ id: orderId, status: newStatus })).unwrap();
-        toast.success('Order status updated successfully');
-      }
-      // Refresh orders list after status update
+      await dispatch(updateStatus({ id: orderId, status: newStatus })).unwrap();
+      toast.success('Order status updated successfully');
       await dispatch(fetchOrders());
     } catch (error) {
       console.error('Status update error:', error);
@@ -80,23 +93,13 @@ export default function Order() {
     }
   };
 
-  const handleFilter = () => {
-    dispatch(fetchOrders({ userId: userIdFilter, productId: productIdFilter }));
-    setShowFilters(false);
-  };
-
   const handleShowFilters = () => setShowFilters(true);
+  const handleFilter = () => setShowFilters(false);
   const handleCancelFilters = () => {
     setUserIdFilter('');
     setProductIdFilter('');
+    setStatusFilter('all');
     setShowFilters(false);
-    dispatch(fetchOrders()); // Show all orders again
-
-    // Open dialog for the first order if available
-    if (orders && orders.length > 0) {
-      setSelectedOrder(orders[0]);
-      setViewDialogOpen(true);
-    }
   };
 
   const handleRequestCancel = () => {
@@ -124,7 +127,7 @@ export default function Order() {
               onClick={handleShowFilters}
               className='text-black'
             >
-            Filter
+              Filter
             </Button>
           )}
           {showFilters && (
@@ -141,14 +144,27 @@ export default function Order() {
                 onChange={e => setProductIdFilter(e.target.value)}
                 size="small"
               />
-              <Button variant="contained" onClick={handleFilter}>بحث</Button>
-              <Button variant="outlined" color="error" onClick={handleCancelFilters}>إلغاء</Button>
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel>Status</InputLabel>
+                <Select
+                  value={statusFilter}
+                  label="Status"
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <MenuItem value="all">All Status</MenuItem>
+                  <MenuItem value="PENDING">Pending</MenuItem>
+                  <MenuItem value="DELIVERED">Delivered</MenuItem>
+                  <MenuItem value="CANCELED">Canceled</MenuItem>
+                </Select>
+              </FormControl>
+              <Button variant="contained" onClick={handleFilter}>Filter</Button>
+              <Button variant="outlined" color="error" onClick={handleCancelFilters}>Cancel</Button>
             </>
           )}
         </div>
         <Paper sx={{ width: '100%', mt: '90px', ml: '40px', p: 2 }}>
           <OrderTable
-            orders={orders || []}
+            orders={filteredOrders}
             page={page}
             rowsPerPage={rowsPerPage}
             onPageChange={handleChangePage}
@@ -174,7 +190,7 @@ export default function Order() {
             <Button
               onClick={async () => {
                 if (orderToDelete) {
-                  await handleUpdateStatus(orderToDelete.id, 'CANCELLED');
+                  await handleUpdateStatus(orderToDelete.id, 'CANCELED');
                 }
                 setConfirmDialogOpen(false);
                 setOrderToDelete(null);

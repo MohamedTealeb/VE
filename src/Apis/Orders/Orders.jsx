@@ -14,6 +14,7 @@ export const getAllOrders = async (filters = {}) => {
     const params = new URLSearchParams();
     if (filters.userId) params.append('userId', filters.userId);
     if (filters.productId) params.append('productId', filters.productId);
+    if (filters.status) params.append('status', filters.status);
 
     const response = await axios.get(
       `${import.meta.env.VITE_BASEURL}/orders?${params.toString()}`,
@@ -69,7 +70,10 @@ export const updateOrderStatus = async (id, status) => {
     console.log('Updating order status:', { id, status }); // Debug log
     const response = await axios.put(
       `${import.meta.env.VITE_BASEURL}/orders/${id}`,
-      { status },
+      { 
+        status: status,
+        updatedAt: new Date().toISOString()
+      },
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -89,6 +93,9 @@ export const updateOrderStatus = async (id, status) => {
     }
     if (error.response?.status === 403) {
       throw { message: 'Access denied', status: 403 };
+    }
+    if (error.response?.status === 400) {
+      throw { message: error.response?.data?.message || 'Invalid request data' };
     }
     throw error.response?.data || { message: 'Failed to update order status' };
   }

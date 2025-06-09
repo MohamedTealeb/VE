@@ -7,9 +7,8 @@ import {
 
 const statusColors = {
   PENDING: 'warning',
-  PROCESSING: 'info',
-  ACCEPTED: 'success',
-  CANCELLED: 'error'
+  DELIVERED: 'success',
+  CANCELED: 'error'
 };
 
 export default function OrderDetailsDialog({
@@ -22,12 +21,21 @@ export default function OrderDetailsDialog({
 }) {
   if (!order) return null;
 
-  const handleAccept = async () => {
+  const handleDeliver = async () => {
     try {
-      await onUpdateStatus(order.id, 'ACCEPTED');
+      await onUpdateStatus(order.id, 'DELIVERED');
       onClose();
     } catch (error) {
-      console.error('Failed to accept order:', error);
+      console.error('Failed to deliver order:', error);
+    }
+  };
+
+  const handleCancel = async () => {
+    try {
+      await onUpdateStatus(order.id, 'CANCELED');
+      onClose();
+    } catch (error) {
+      console.error('Failed to cancel order:', error);
     }
   };
 
@@ -164,16 +172,16 @@ export default function OrderDetailsDialog({
             <Button
               variant="contained"
               color="success"
-              onClick={handleAccept}
-              disabled={loading || order.status === 'ACCEPTED'}
+              onClick={handleDeliver}
+              disabled={loading || order.status === 'DELIVERED'}
             >
-              Accept
+              Deliver
             </Button>
             <Button
               variant="contained"
               color="error"
-              onClick={onRequestCancel}
-              disabled={loading || order.status === 'CANCELLED'}
+              onClick={handleCancel}
+              disabled={loading || order.status === 'CANCELED'}
             >
               Cancel
             </Button>

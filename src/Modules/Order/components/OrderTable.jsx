@@ -20,7 +20,9 @@ const statusColors = {
   PENDING: 'warning',
   PROCESSING: 'info',
   ACCEPTED: 'success',
-  CANCELLED: 'error'
+  CANCELLED: 'error',
+  DELIVERED: 'success',
+  CANCELED: 'error'
 };
 
 export default function OrderTable({

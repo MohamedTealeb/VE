@@ -38,6 +38,7 @@ export const updateStatus = createAsyncThunk(
       const response = await updateOrderStatus(id, status);
       return { id, status, ...response };
     } catch (error) {
+      console.error('Update status error:', error);
       return rejectWithValue(error);
     }
   }
