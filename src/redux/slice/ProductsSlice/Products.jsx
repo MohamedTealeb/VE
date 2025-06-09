@@ -61,7 +61,30 @@ export const removeProduct = createAsyncThunk(
       const response = await deleteProduct(id);
       return { id, ...response };
     } catch (error) {
-      return rejectWithValue(error);
+      console.error('Remove product thunk error:', error);
+      
+      // If error is a string, use it directly
+      if (typeof error === 'string') {
+        return rejectWithValue(error);
+      }
+      
+      // If error has a message property, use it
+      if (error.message) {
+        return rejectWithValue(error.message);
+      }
+      
+      // If error has a response with error message, use that
+      if (error.response?.data?.error) {
+        return rejectWithValue(error.response.data.error);
+      }
+      
+      // If error has a response with message, use that
+      if (error.response?.data?.message) {
+        return rejectWithValue(error.response.data.message);
+      }
+      
+      // Otherwise use a generic error message
+      return rejectWithValue('Failed to delete product. Please try again.');
     }
   }
 );

@@ -249,9 +249,51 @@ export const updateProduct = async (id, productData) => {
 // Delete product
 export const deleteProduct = async (id) => {
   try {
+    console.log('Attempting to delete product:', id);
+    
+    // First, remove color associations by updating the product with empty color array
+    try {
+      await api.put(`/products/${id}`, {
+        colors: []
+      });
+      console.log('Successfully removed color associations');
+    } catch (updateError) {
+      console.warn('Error removing color associations:', updateError);
+      // Continue with product deletion even if color removal fails
+    }
+    
+    // Then delete the product
     const response = await api.delete(`/products/${id}`);
+    console.log('Delete product response:', response.data);
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    console.error('Delete product error:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      request: {
+        url: error.config?.url,
+        method: error.config?.method,
+        headers: error.config?.headers,
+        params: error.config?.params
+      }
+    });
+    
+    // If there's a specific error message from the server, use it
+    if (error.response?.data?.error) {
+      throw error.response.data.error;
+    }
+    
+    // If there's a specific error message in the response data, use it
+    if (error.response?.data?.message) {
+      throw error.response.data.message;
+    }
+    
+    // Otherwise throw a generic error with status code
+    throw {
+      message: `Failed to delete product (${error.response?.status || 'Unknown error'})`,
+      status: error.response?.status
+    };
   }
 }; 
