@@ -25,17 +25,19 @@ export default function Login() {
       console.log("Submitting login form...");
       const result = await dispatch(loginUser({ email: data.username, password: data.password })).unwrap();
       
-      // Check if token exists in localStorage
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.error("No token found in localStorage after login");
-        toast.error("Login failed - no token received");
-        return;
+      console.log("Login response:", result); // Debug log
+      
+      // Store token in localStorage
+      if (result.data?.token) {
+        localStorage.setItem('token', result.data.token);
       }
 
-      toast.success('Logged in successfully!', { duration: 5000 });
-      
-      navigate('/home');
+      if (result.data?.role === "ADMIN") {
+        toast.success('Logged in successfully!', { duration: 5000 });
+        navigate('/home');
+      } else {
+        toast.error("You are not authorized to access the admin area.");
+      }
     } catch (err) {
       console.error("Login error in component:", err);
       toast.error(err.message || 'Login failed');

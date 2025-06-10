@@ -13,17 +13,8 @@ export const loginUser = createAsyncThunk(
         }
       );
       
-      const token = response.data.token || response.data.data?.token;
-      
-      if (token) {
-        localStorage.setItem("token", token);
-        return {
-          user: response.data.user || response.data.data?.user,
-          token: token
-        };
-      }
-      
-      return rejectWithValue("No token received in response");
+      // Return the entire response data
+      return response.data;
       
     } catch (error) {
       return rejectWithValue(error.response?.data || "Login failed");
