@@ -25,12 +25,23 @@ export default function CategoryTable({
   const getImageUrl = (image) => {
     if (!image) return '';
     if (typeof image === 'string') {
-      return image.startsWith('http') ? image : `${imageBaseUrl}/${image}`;
+      return image.startsWith('http') ? image : `${imageBaseUrl}${image.startsWith('/') ? '' : '/'}${image}`;
     }
     if (image instanceof File) return URL.createObjectURL(image);
     if (image.url) return image.url;
     return '';
   };
+
+  // Cleanup image URLs when component unmounts
+  React.useEffect(() => {
+    return () => {
+      categories.forEach(category => {
+        if (category.image instanceof File) {
+          URL.revokeObjectURL(URL.createObjectURL(category.image));
+        }
+      });
+    };
+  }, [categories]);
 
   return (
     <>
@@ -54,10 +65,20 @@ export default function CategoryTable({
                     if (column.id === 'actions') {
                       return (
                         <TableCell key={column.id}>
-                          <IconButton color="primary" onClick={() => onEdit(category)} size="small">
+                          <IconButton 
+                            color="primary" 
+                            onClick={() => onEdit(category)} 
+                            size="small"
+                            aria-label={`Edit ${category.name}`}
+                          >
                             <EditIcon />
                           </IconButton>
-                          <IconButton color="error" onClick={() => onDelete(category)} size="small">
+                          <IconButton 
+                            color="error" 
+                            onClick={() => onDelete(category)} 
+                            size="small"
+                            aria-label={`Delete ${category.name}`}
+                          >
                             <DeleteIcon />
                           </IconButton>
                         </TableCell>
@@ -67,37 +88,23 @@ export default function CategoryTable({
                       const imgSrc = getImageUrl(category.image);
                       return (
                         <TableCell key={column.id} align={column.align || 'left'}>
-                          {imgSrc ? (
-                            <Box
-                              component="img"
-                              src={imgSrc}
-                              alt={category.name}
-                              sx={{
-                                width: 50,
-                                height: 50,
-                                objectFit: 'cover',
-                                borderRadius: 1,
-                                border: '1px solid #ddd'
-                              }}
-                              onError={e => {
-                                e.target.onerror = null;
-                                e.target.src = '/default-image.png';
-                              }}
-                            />
-                          ) : (
-                            <Box
-                              component="img"
-                              src="/default-image.png"
-                              alt="No image"
-                              sx={{
-                                width: 50,
-                                height: 50,
-                                objectFit: 'cover',
-                                borderRadius: 1,
-                                border: '1px solid #ddd'
-                              }}
-                            />
-                          )}
+                          <Box
+                            component="img"
+                            src={imgSrc || '/default-image.png'}
+                            alt={category.name}
+                            sx={{
+                              width: 50,
+                              height: 50,
+                              objectFit: 'cover',
+                              borderRadius: 1,
+                              border: '1px solid #ddd',
+                              display: 'block'
+                            }}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = '/default-image.png';
+                            }}
+                          />
                         </TableCell>
                       );
                     }

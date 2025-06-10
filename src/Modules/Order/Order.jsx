@@ -82,8 +82,8 @@ export default function Order() {
   const handleUpdateStatus = async (orderId, newStatus) => {
     try {
       setUpdateLoading(true);
-      await dispatch(updateStatus({ id: orderId, status: newStatus })).unwrap();
-      toast.success('Order status updated successfully');
+        await dispatch(updateStatus({ id: orderId, status: newStatus })).unwrap();
+        toast.success('Order status updated successfully');
       await dispatch(fetchOrders());
     } catch (error) {
       console.error('Status update error:', error);
@@ -127,7 +127,7 @@ export default function Order() {
               onClick={handleShowFilters}
               className='text-black'
             >
-              Filter
+            Filter
             </Button>
           )}
           {showFilters && (
