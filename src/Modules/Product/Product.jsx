@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
+import { createGovernment, getAllGovernments, updateGovernment, deleteGovernment } from '../../Apis/Governments/Governments';
 
 export default function Product() {
   const dispatch = useDispatch();
@@ -46,6 +47,12 @@ export default function Product() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
+  const [governmentDialogOpen, setGovernmentDialogOpen] = useState(false);
+  const [governmentName, setGovernmentName] = useState('');
+  const [governments, setGovernments] = useState([]);
+  const [editGovernmentId, setEditGovernmentId] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [governmentToDelete, setGovernmentToDelete] = useState(null);
 
   // Fetch all data
   useEffect(() => {
@@ -89,6 +96,22 @@ export default function Product() {
       console.error('Colors error state changed:', colorsError);
     }
   }, [colorsError]);
+
+  // جلب المحافظات عند فتح الفورم
+  useEffect(() => {
+    if (governmentDialogOpen) {
+      const fetchGovernments = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await getAllGovernments(token);
+          setGovernments(res.data);
+        } catch (err) {
+          toast.error('تعذر جلب المحافظات');
+        }
+      };
+      fetchGovernments();
+    }
+  }, [governmentDialogOpen]);
 
   const handleAddColor = () => {
     setSelectedColor(null);
@@ -283,6 +306,61 @@ export default function Product() {
     setProductToDelete(null);
   };
 
+  const handleAddGovernment = () => {
+    setGovernmentName('');
+    setGovernmentDialogOpen(true);
+  };
+
+  const handleSaveGovernment = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!governmentName.trim()) {
+        toast.error('اسم المحافظة مطلوب');
+        return;
+      }
+      if (editGovernmentId) {
+        await updateGovernment(editGovernmentId, { name: governmentName }, token);
+        toast.success('تم تعديل المحافظة بنجاح');
+      } else {
+        await createGovernment({ name: governmentName }, token);
+        toast.success('تم إضافة المحافظة بنجاح');
+      }
+      setGovernmentName('');
+      setEditGovernmentId(null);
+      // جلب المحافظات من جديد
+      const res = await getAllGovernments(token);
+      setGovernments(res.data);
+    } catch (err) {
+      toast.error(err?.message || 'حدث خطأ أثناء حفظ المحافظة');
+    }
+  };
+
+  const handleEditGovernment = (gov) => {
+    setGovernmentName(gov.name);
+    setEditGovernmentId(gov.id);
+  };
+
+  const handleRequestDeleteGovernment = (gov) => {
+    setGovernmentToDelete(gov);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDeleteGovernment = async () => {
+    if (!governmentToDelete) return;
+    try {
+      const token = localStorage.getItem('token');
+      await deleteGovernment(governmentToDelete.id, token);
+      toast.success('تم حذف المحافظة');
+      // جلب المحافظات من جديد
+      const res = await getAllGovernments(token);
+      setGovernments(res.data);
+    } catch (err) {
+      toast.error('حدث خطأ أثناء حذف المحافظة');
+    }
+    setDeleteDialogOpen(false);
+    setGovernmentToDelete(null);
+  };
+
   if (colorsLoading || sizesLoading || productsLoading || categoriesLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -346,7 +424,22 @@ export default function Product() {
               startIcon={<AddIcon />}
               onClick={handleAddColor}
             >
-              Add Color
+              ADD COLOR
+            </Button>
+            <Button
+              variant="contained"
+              fullWidth={isMobile}
+              sx={{ 
+                backgroundColor: 'black',
+                borderRadius: '8px',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.8)'
+                }
+              }}
+              startIcon={<AddIcon />}
+              onClick={handleAddGovernment}
+            >
+              ADD GOVERNMENTS
             </Button>
             <Button
               variant="contained"
@@ -361,7 +454,7 @@ export default function Product() {
               startIcon={<AddIcon />}
               onClick={handleAddSize}
             >
-              Add Size
+              ADD SIZE
             </Button>
             <Button
               variant="contained"
@@ -376,7 +469,7 @@ export default function Product() {
               startIcon={<AddIcon />}
               onClick={handleAddProduct}
             >
-              Add Product
+              ADD PRODUCT
             </Button>
             <Button
               variant="contained"
@@ -391,7 +484,7 @@ export default function Product() {
               startIcon={<LogoutIcon />}
               onClick={handleLogout}
             >
-              Logout
+              LOGOUT
             </Button>
           </Box>
         </Box>
@@ -453,6 +546,66 @@ export default function Product() {
               variant="contained"
             >
               Yes
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog open={governmentDialogOpen} onClose={() => {
+          setGovernmentDialogOpen(false);
+          setGovernmentName('');
+          setEditGovernmentId(null);
+        }}>
+          <DialogTitle>إدارة المحافظات</DialogTitle>
+          <Box sx={{ px: 3, py: 1 }}>
+            <input
+              type="text"
+              value={governmentName}
+              onChange={e => setGovernmentName(e.target.value)}
+              placeholder="اسم المحافظة"
+              style={{ width: '100%', padding: 8, marginBottom: 8 }}
+            />
+            <Button
+              onClick={handleSaveGovernment}
+              color="primary"
+              variant="contained"
+              sx={{ mb: 2, ml: 1 }}
+            >
+              {editGovernmentId ? 'تعديل' : 'إضافة'}
+            </Button>
+            <ul style={{ listStyle: 'none', padding: 0 }}>
+              {governments.map(gov => (
+                <li key={gov.id} style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                  <span style={{ flex: 1 }}>{gov.name}</span>
+                  <Button size="small" color="primary" onClick={() => handleEditGovernment(gov)}>تعديل</Button>
+                  <Button size="small" color="error" onClick={() => handleRequestDeleteGovernment(gov)}>حذف</Button>
+                </li>
+              ))}
+            </ul>
+          </Box>
+          <DialogActions>
+            <Button onClick={() => {
+              setGovernmentDialogOpen(false);
+              setGovernmentName('');
+              setEditGovernmentId(null);
+            }} color="primary">
+              إغلاق
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+          <DialogTitle>تأكيد الحذف</DialogTitle>
+          <Box sx={{ px: 3, py: 2 }}>
+            هل أنت متأكد من حذف المحافظة؟
+            <br />
+            <b>{governmentToDelete?.name}</b>
+          </Box>
+          <DialogActions>
+            <Button onClick={() => setDeleteDialogOpen(false)} color="primary">
+              إلغاء
+            </Button>
+            <Button onClick={handleConfirmDeleteGovernment} color="error" variant="contained">
+              حذف
             </Button>
           </DialogActions>
         </Dialog>

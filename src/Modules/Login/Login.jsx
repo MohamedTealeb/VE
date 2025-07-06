@@ -24,7 +24,7 @@ export default function Login() {
     try {
       console.log("Submitting login form...");
       const result = await dispatch(loginUser({ email: data.username, password: data.password })).unwrap();
-      
+     
       console.log("Login response:", result); // Debug log
       
       // Store token in localStorage
@@ -33,8 +33,8 @@ export default function Login() {
       }
 
       if (result.data?.role === "ADMIN") {
-        toast.success('Logged in successfully!', { duration: 5000 });
-        navigate('/home');
+      toast.success('Logged in successfully!', { duration: 5000 });
+      navigate('/home');
       } else {
         toast.error("You are not authorized to access the admin area.");
       }

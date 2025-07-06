@@ -269,6 +269,7 @@ export default function ProductDialog({
                 >
                   <MenuItem value="male">Male</MenuItem>
                   <MenuItem value="female">Female</MenuItem>
+                  <MenuItem value="unisex">Unisex</MenuItem>
                 </Select>
               </FormControl>
             </Grid>

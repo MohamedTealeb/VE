@@ -11,7 +11,7 @@ const columns = [
   { id: 'user', label: 'Email', minWidth: 200 },
   { id: 'orderPhone', label: 'Order Phone', minWidth: 150 },
   { id: 'userPhone', label: 'User Phone', minWidth: 150 },
-  { id: 'product', label: 'Product Name', minWidth: 150 },
+
   { id: 'status', label: 'Status', minWidth: 120 },
   { id: 'actions', label: 'Actions', minWidth: 100 },
 ];

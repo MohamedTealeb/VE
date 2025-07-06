@@ -6,11 +6,16 @@ import {
 } from '@mui/material';
 import { useSelector } from 'react-redux';
 import CheckIcon from '@mui/icons-material/Check';
+import { useEffect, useState } from 'react';
+import { getAllGovernments } from '../../../Apis/Governments/Governments';
 
 const statusColors = {
   PENDING: 'warning',
   DELIVERED: 'success',
-  CANCELED: 'error'
+  CANCELED: 'error',
+  CANCELLED: 'error',
+  PROCESSING: 'info',
+  ACCEPTED: 'success',
 };
 
 export default function OrderDetailsDialog({
@@ -24,6 +29,29 @@ export default function OrderDetailsDialog({
   // Get colors and sizes from Redux
   const colors = useSelector(state => state.colors.colors || []);
   const sizes = useSelector(state => state.sizes.sizes || []);
+
+  const [governments, setGovernments] = useState([]);
+
+  useEffect(() => {
+    if (open) {
+      const fetchGovernments = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await getAllGovernments(token);
+          setGovernments(res.data);
+        } catch (err) {
+          setGovernments([]);
+        }
+      };
+      fetchGovernments();
+    }
+  }, [open]);
+
+  // دالة للحصول على اسم المحافظة
+  const getGovernmentName = (id) => {
+    const gov = governments.find(g => g.id === id);
+    return gov ? gov.name : id;
+  };
 
   if (!order) return null;
 
@@ -46,6 +74,9 @@ export default function OrderDetailsDialog({
 
   const selectedColor = colors.find(c => c.id === order.colorId);
   const selectedSize = sizes.find(s => s.id === order.sizeId);
+
+  const SHIPPING_FEES = 70;
+  const grandTotal = (order.total || 0) + SHIPPING_FEES;
 
   const handleDeliver = async () => {
     try {
@@ -70,174 +101,60 @@ export default function OrderDetailsDialog({
       <DialogTitle>Order Details</DialogTitle>
       <DialogContent>
         <div className="space-y-6">
-          {/* Order Information */}
+          {/* Order Main Info */}
           <div className="bg-gray-50 p-4 rounded-lg">
             <h3 className="text-lg font-semibold mb-3">Order Information</h3>
-            <div className="flex gap-6 items-start mb-4">
-              {/* Product Image */}
-              <div className="w-32 h-32 flex-shrink-0">
-                <img
-                  src={`${import.meta.env.VITE_IMAGEURL}${order.product?.cover_Image}`}
-                  alt={order.product?.name}
-                  className="w-full h-full object-cover rounded-lg border"
-                />
-              </div>
-              {/* Order Info Grid */}
-              <div className="flex-grow">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-600">Order ID</p>
-                    <p className="font-medium">{order.id}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Product Name</p>
-                    <p className="font-medium">{order.product?.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Color</p>
-                    {order.color ? (
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center border-2 border-blue-500"
-                          style={{ backgroundColor: order.color.hex || order.color.code || '#ccc', position: 'relative' }}
-                        >
-                          <CheckIcon style={{ color: 'white', fontSize: 20, position: 'absolute' }} />
-                        </div>
-                        <span className="ml-1 text-base font-medium">{order.color.name}</span>
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">No color chosen</span>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Size</p>
-                    {order.size ? (
-                      <div
-                        className="px-4 py-2 rounded border bg-blue-500 text-white border-blue-500 text-center text-base font-semibold relative"
-                        style={{ minWidth: 40, textAlign: 'center' }}
-                      >
-                        {order.size.label}
-                        <CheckIcon style={{ color: 'white', fontSize: 16, position: 'absolute', top: 2, right: 2 }} />
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">No size chosen</span>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Product ID</p>
-                    <p className="font-medium">{order.productId}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">User ID</p>
-                    <p className="font-medium">{order.userId}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Status</p>
-                    <Chip
-                      label={order.status}
-                      color={statusColors[order.status]}
-                      size="small"
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Quantity</p>
-                    <p className="font-medium">{order.quantity}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Total Amount</p>
-                    <p className="font-medium">${order.total}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Created At</p>
-                    <p className="font-medium">{new Date(order.createdAt).toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Updated At</p>
-                    <p className="font-medium">{new Date(order.updatedAt).toLocaleString()}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Shipping Information */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold mb-3">Shipping Information</h3>
             <div className="grid grid-cols-2 gap-4">
+              <div><b>Order ID:</b> {order.id}</div>
               <div>
-                <p className="text-sm text-gray-600">Address</p>
-                <p className="font-medium">{order.address}</p>
+                <b>Status:</b> 
+                <Chip label={order.status} color={statusColors[order.status] || 'default'} size="small" style={{ fontWeight: 'bold', fontSize: 15 }} />
               </div>
-              <div>
-                <p className="text-sm text-gray-600">Phone</p>
-                <p className="font-medium">{order.phone}</p>
-              </div>
+              <div style={{ gridColumn: '1 / span 2', fontSize: 18, color: '#1976d2', fontWeight: 'bold' }}><b>Total Price:</b> {order.total} EGP</div>
+              <div style={{ gridColumn: '1 / span 2', fontSize: 16 }}><b>Shipping Fees:</b> {SHIPPING_FEES} EGP</div>
+              <div style={{ gridColumn: '1 / span 2', fontSize: 20, color: '#d32f2f', fontWeight: 'bold' }}><b>Grand Total:</b> {grandTotal} EGP</div>
+              <div><b>Address:</b> {order.address}</div>
+              <div><b>Phone:</b> {order.phone}</div>
+              <div><b>Governorate:</b> {getGovernmentName(order.governmentId)}</div>
+              <div><b>Created At:</b> {order.createdAt}</div>
+              <div><b>Updated At:</b> {order.updatedAt}</div>
             </div>
           </div>
 
-          {/* User Information */}
+          {/* User Info */}
           <div className="bg-gray-50 p-4 rounded-lg">
             <h3 className="text-lg font-semibold mb-3">User Information</h3>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-600">User ID</p>
-                <p className="font-medium">{order.user?.id}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Role</p>
-                <p className="font-medium">{order.user?.role}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Name</p>
-                <p className="font-medium">{order.user?.firstName} {order.user?.lastName}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Email</p>
-                <p className="font-medium">{order.user?.email}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Phone Number</p>
-                <p className="font-medium">{order.user?.phoneNumber}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Created At</p>
-                <p className="font-medium">{new Date(order.user?.createdAt).toLocaleString()}</p>
-              </div>
+              <div><b>User ID:</b> {order.user?.id}</div>
+              <div><b>Email:</b> {order.user?.email}</div>
+              <div><b>Name:</b> {order.user?.firstName} {order.user?.lastName}</div>
+              <div><b>Role:</b> {order.user?.role}</div>
+              <div><b>Phone Number:</b> {order.user?.phoneNumber}</div>
+              <div><b>Created At:</b> {order.user?.createdAt}</div>
             </div>
           </div>
 
-          {/* Product Information */}
+          {/* Items Info */}
           <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold mb-3">Product Information</h3>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Price</TableCell>
-                    <TableCell>Material</TableCell>
-                    <TableCell>Target Gender</TableCell>
-                    <TableCell>Category</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>{order.product?.name}</TableCell>
-                    <TableCell>${order.product?.price}</TableCell>
-                    <TableCell>{order.product?.Material}</TableCell>
-                    <TableCell>{order.product?.target_gender}</TableCell>
-                    <TableCell>{order.product?.category}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </div>
-
-          {/* Product Description */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold mb-3">Product Description</h3>
-            <p className="text-sm">{order.product?.discreption}</p>
+            <h3 className="text-lg font-semibold mb-3">Order Items</h3>
+            {order.items?.map((item, idx) => (
+              <div key={item.id} style={{ marginBottom: 16, padding: 8, background: '#fff', borderRadius: 4 }}>
+                <b>Item #{idx + 1}</b><br />
+                <b>Quantity:</b> {item.quantity}<br />
+                <b>Color:</b> {item.color?.name} ({item.color?.hex})<br />
+                <b>Size:</b> {item.size?.label}<br />
+                <b>Product:</b> {item.product?.name} (ID: {item.product?.id})<br />
+                <b>Price:</b> {item.product?.price}<br />
+                <b>Description:</b> {item.product?.discreption}<br />
+                <b>Cover Image:</b> {item.product?.cover_Image && <img src={item.product?.cover_Image.startsWith('/') ? (import.meta.env.VITE_IMAGEURL + item.product?.cover_Image) : item.product?.cover_Image} alt="" style={{ maxWidth: 80, verticalAlign: 'middle', borderRadius: 8, border: '1px solid #eee' }} />}<br />
+                <b>Images:</b>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {item.product?.images?.map(img => (
+                    <img key={img.id} src={img.url.startsWith('/') ? (import.meta.env.VITE_IMAGEURL + img.url) : img.url} alt="product" style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 6, border: '1px solid #eee' }} />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Action Buttons */}
