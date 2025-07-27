@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Paper, CircularProgress, TextField, Button, IconButton, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Paper, CircularProgress, TextField, Button, IconButton, FormControl, InputLabel, Select, MenuItem, Chip } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
@@ -17,13 +17,16 @@ export default function Order() {
   const navigate = useNavigate();
   const { orders, loading, error } = useSelector((state) => state.orders);
   
+  // Debug logging
+  console.log('Order component - orders:', orders);
+  console.log('Order component - loading:', loading);
+  console.log('Order component - error:', error);
+  
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [viewDialogOpen, setViewDialogOpen] = React.useState(false);
   const [selectedOrder, setSelectedOrder] = React.useState(null);
   const [updateLoading, setUpdateLoading] = React.useState(false);
-  const [userIdFilter, setUserIdFilter] = React.useState('');
-  const [productIdFilter, setProductIdFilter] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState('all');
   const [showFilters, setShowFilters] = React.useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = React.useState(false);
@@ -36,8 +39,21 @@ export default function Order() {
       navigate('/login');
       return;
     }
+    console.log('Dispatching fetchOrders...');
     dispatch(fetchOrders());
   }, [dispatch, navigate]);
+
+  // Fetch orders when status filter changes
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    
+    const filters = {};
+    if (statusFilter && statusFilter !== 'all') filters.status = statusFilter;
+    
+    console.log('Fetching orders with status filter:', filters);
+    dispatch(fetchOrders(filters));
+  }, [statusFilter, dispatch]);
 
   useEffect(() => {
     if (error) {
@@ -47,21 +63,25 @@ export default function Order() {
 
   // Filter orders based on current filters
   const filteredOrders = React.useMemo(() => {
-    if (!orders) return [];
+    console.log('Orders value:', orders, 'Type:', typeof orders, 'Is Array:', Array.isArray(orders));
+    
+    // Ensure orders is always an array
+    if (!orders || !Array.isArray(orders)) {
+      console.warn('Orders is not an array, returning empty array. Orders:', orders);
+      return [];
+    }
     
     return orders
       .filter(order => {
-        const matchesUserId = !userIdFilter || order.userId?.toString().includes(userIdFilter);
-        const matchesProductId = !productIdFilter || order.productId?.toString().includes(productIdFilter);
         const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
         
-        return matchesUserId && matchesProductId && matchesStatus;
+        return matchesStatus;
       })
       .sort((a, b) => {
         // Sort by createdAt in descending order (newest first)
         return new Date(b.createdAt) - new Date(a.createdAt);
       });
-  }, [orders, userIdFilter, productIdFilter, statusFilter]);
+  }, [orders, statusFilter]);
 
   const handleChangePage = (event, newPage) => setPage(newPage);
   const handleChangeRowsPerPage = (event) => {
@@ -96,8 +116,6 @@ export default function Order() {
   const handleShowFilters = () => setShowFilters(true);
   const handleFilter = () => setShowFilters(false);
   const handleCancelFilters = () => {
-    setUserIdFilter('');
-    setProductIdFilter('');
     setStatusFilter('all');
     setShowFilters(false);
   };
@@ -118,32 +136,53 @@ export default function Order() {
   return (
     <>
       <Toaster />
-      <div className="overflow-hidden flex flex-col">
-        <div style={{ display: 'flex', gap: 16, margin: 16, alignItems: 'center' }}>
+      <div className="overflow-hidden mt-20 flex flex-col">
+        <div style={{ display: 'flex', gap: 16, margin: '20px 16px', alignItems: 'center', flexWrap: 'wrap', backgroundColor: '#f5f5f5', padding: '10px', borderRadius: '8px' }}>
+          {/* Status Summary */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <Chip 
+              label={`Pending: ${filteredOrders.filter(o => o.status === 'PENDING').length}`} 
+              color="warning" 
+              variant="outlined"
+              onClick={() => setStatusFilter('PENDING')}
+              style={{ cursor: 'pointer' }}
+            />
+            <Chip 
+              label={`Delivered: ${filteredOrders.filter(o => o.status === 'DELIVERED').length}`} 
+              color="success" 
+              variant="outlined"
+              onClick={() => setStatusFilter('DELIVERED')}
+              style={{ cursor: 'pointer' }}
+            />
+            <Chip 
+              label={`Canceled: ${filteredOrders.filter(o => o.status === 'CANCELED').length}`} 
+              color="error" 
+              variant="outlined"
+              onClick={() => setStatusFilter('CANCELED')}
+              style={{ cursor: 'pointer' }}
+            />
+            <Chip 
+              label={`All: ${filteredOrders.length}`} 
+              color="primary" 
+              variant="outlined"
+              onClick={() => setStatusFilter('all')}
+              style={{ cursor: 'pointer' }}
+            />
+          </div>
+        
           {!showFilters && (
             <Button
               variant="outlined"
               startIcon={<FilterListIcon />}
               onClick={handleShowFilters}
               className='text-black'
+              style={{ marginLeft: 'auto' }}
             >
             Filter
             </Button>
           )}
           {showFilters && (
             <>
-              <TextField
-                label="User ID"
-                value={userIdFilter}
-                onChange={e => setUserIdFilter(e.target.value)}
-                size="small"
-              />
-              <TextField
-                label="Product ID"
-                value={productIdFilter}
-                onChange={e => setProductIdFilter(e.target.value)}
-                size="small"
-              />
               <FormControl size="small" sx={{ minWidth: 120 }}>
                 <InputLabel>Status</InputLabel>
                 <Select
@@ -155,6 +194,7 @@ export default function Order() {
                   <MenuItem value="PENDING">Pending</MenuItem>
                   <MenuItem value="DELIVERED">Delivered</MenuItem>
                   <MenuItem value="CANCELED">Canceled</MenuItem>
+               
                 </Select>
               </FormControl>
               <Button variant="contained" onClick={handleFilter}>Filter</Button>
@@ -162,7 +202,7 @@ export default function Order() {
             </>
           )}
         </div>
-        <Paper sx={{ width: '100%', mt: '90px', ml: '40px', p: 2 }}>
+        <Paper sx={{ width: '100%', mt: '20px', ml: '40px', p: 2 }}>
           <OrderTable
             orders={filteredOrders}
             page={page}

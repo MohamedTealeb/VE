@@ -19,6 +19,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import { createGovernment, getAllGovernments, updateGovernment, deleteGovernment } from '../../Apis/Governments/Governments';
+import DeleteConfirmation from '../Messages/components/DeleteConfirmation';
 
 export default function Product() {
   const dispatch = useDispatch();
@@ -194,6 +195,26 @@ export default function Product() {
     setProductDialogOpen(true);
   };
 
+  const handleEditProduct = (product) => {
+    console.log('🔍 Editing product:', product);
+    console.log('🔍 Product details for editing:', {
+      id: product.id,
+      name: product.name,
+      categoryId: product.categoryId,
+      description: product.discreption || product.description,
+      price: product.price,
+      stock: product.stock,
+      target_gender: product.target_gender,
+      material: product.Material || product.material,
+      cover_Image: product.cover_Image,
+      colors: product.colors,
+      sizes: product.sizes,
+      images: product.images
+    });
+    setSelectedProduct(product);
+    setProductDialogOpen(true);
+  };
+
   const handleDeleteProduct = async (product) => {
     try {
       await dispatch(removeProduct(product.id)).unwrap();
@@ -206,6 +227,9 @@ export default function Product() {
 
   const handleSaveProduct = async (formData) => {
     try {
+      console.log('🔍 handleSaveProduct called with formData:', formData);
+      console.log('🔍 selectedProduct:', selectedProduct);
+      
       // Validate formData
       if (!formData || typeof formData !== 'object') {
         throw new Error('Product data is required and must be an object');
@@ -260,11 +284,21 @@ export default function Product() {
         sizes: productData.sizes?.length || 0
       });
 
-      // Only add new product, no editing
-      await dispatch(addProduct(productData)).unwrap();
-      toast.success('Product added successfully');
+      if (selectedProduct) {
+        // تحديث منتج موجود
+        console.log('🔍 Updating existing product with ID:', selectedProduct.id);
+        console.log('🔍 Product data being sent:', productData);
+        await dispatch(editProduct({ id: selectedProduct.id, ...productData })).unwrap();
+        toast.success('تم تحديث المنتج بنجاح');
+      } else {
+        // إضافة منتج جديد
+        console.log('🔍 Creating new product');
+        await dispatch(addProduct(productData)).unwrap();
+        toast.success('تم إضافة المنتج بنجاح');
+      }
       
       setProductDialogOpen(false);
+      setSelectedProduct(null);
       dispatch(fetchProducts());
     } catch (err) {
       console.error('Error saving product:', err);
@@ -499,6 +533,7 @@ export default function Product() {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
           onDelete={handleRequestDeleteProduct}
+          onEdit={handleEditProduct}
           isMobile={isMobile}
           isTablet={isTablet}
         />
@@ -524,9 +559,12 @@ export default function Product() {
 
         <ProductDialog
           open={productDialogOpen}
-          onClose={() => setProductDialogOpen(false)}
+          onClose={() => {
+            setProductDialogOpen(false);
+            setSelectedProduct(null);
+          }}
           onSave={handleSaveProduct}
-          product={null}
+          selectedProduct={selectedProduct}
           colors={colors}
           sizes={sizes}
           categories={categories}
@@ -534,21 +572,14 @@ export default function Product() {
           isMobile={isMobile}
         />
 
-        <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)}>
-          <DialogTitle>Are you sure you want to delete this product?</DialogTitle>
-          <DialogActions>
-            <Button onClick={() => setConfirmDialogOpen(false)} color="primary">
-              No
-            </Button>
-            <Button
-              onClick={handleConfirmDeleteProduct}
-              color="error"
-              variant="contained"
-            >
-              Yes
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <DeleteConfirmation
+          open={confirmDialogOpen}
+          onClose={() => setConfirmDialogOpen(false)}
+          onConfirm={handleConfirmDeleteProduct}
+          title="تأكيد حذف المنتج"
+          message="هل أنت متأكد من حذف هذا المنتج؟"
+          itemName={productToDelete?.name || ''}
+        />
 
         <Dialog open={governmentDialogOpen} onClose={() => {
           setGovernmentDialogOpen(false);
@@ -593,22 +624,14 @@ export default function Product() {
           </DialogActions>
         </Dialog>
 
-        <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-          <DialogTitle>تأكيد الحذف</DialogTitle>
-          <Box sx={{ px: 3, py: 2 }}>
-            هل أنت متأكد من حذف المحافظة؟
-            <br />
-            <b>{governmentToDelete?.name}</b>
-          </Box>
-          <DialogActions>
-            <Button onClick={() => setDeleteDialogOpen(false)} color="primary">
-              إلغاء
-            </Button>
-            <Button onClick={handleConfirmDeleteGovernment} color="error" variant="contained">
-              حذف
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <DeleteConfirmation
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          onConfirm={handleConfirmDeleteGovernment}
+          title="تأكيد حذف المحافظة"
+          message="هل أنت متأكد من حذف هذه المحافظة؟"
+          itemName={governmentToDelete?.name || ''}
+        />
       </Paper>
     </Box>
   );

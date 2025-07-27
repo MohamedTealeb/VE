@@ -7,6 +7,8 @@ import Login from "./Modules/Login/Login";
 import Order from "./Modules/Order/Order";
 import Users from "./Modules/Users/Users";
 import Category from "./Modules/Category/Category";
+import Offers from "./Modules/Messages/Messages";
+import SimpleMessages from "./Modules/Messages/SimpleMessages";
 import ProtectedRoute from "./ProtectedRoute/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 
@@ -69,6 +71,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Order />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="messages"
+              element={
+                <ProtectedRoute>
+                  <Offers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="simple-messages"
+              element={
+                <ProtectedRoute>
+                  <SimpleMessages />
                 </ProtectedRoute>
               }
             />

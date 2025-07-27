@@ -4,6 +4,7 @@ import {
   TablePagination, IconButton, Chip
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const columns = [
   { id: 'id', label: 'Order ID', minWidth: 100 },
@@ -13,7 +14,7 @@ const columns = [
   { id: 'userPhone', label: 'User Phone', minWidth: 150 },
 
   { id: 'status', label: 'Status', minWidth: 120 },
-  { id: 'actions', label: 'Actions', minWidth: 100 },
+  { id: 'actions', label: 'Actions', minWidth: 120 },
 ];
 
 const statusColors = {
@@ -31,7 +32,8 @@ export default function OrderTable({
   rowsPerPage,
   onPageChange,
   onRowsPerPageChange,
-  onView
+  onView,
+  onDelete
 }) {
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString();
@@ -60,6 +62,9 @@ export default function OrderTable({
                         <TableCell key={column.id}>
                           <IconButton color="primary" onClick={() => onView(order)} size="small">
                             <VisibilityIcon />
+                          </IconButton>
+                          <IconButton color="error" onClick={() => onDelete(order.id)} size="small">
+                            <DeleteIcon />
                           </IconButton>
                         </TableCell>
                       );

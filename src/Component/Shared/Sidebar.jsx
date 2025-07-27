@@ -24,7 +24,9 @@ import {
   People as PeopleIcon,
   Inventory as InventoryIcon,
   Category as CategoryIcon,
-  ShoppingCart as ShoppingCartIcon
+  ShoppingCart as ShoppingCartIcon,
+  Message as MessageIcon,
+  LocalOffer as LocalOfferIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../../assets/WhatsApp Image 2025-05-06 at 12.31.39_3f99cae6.jpg';
@@ -125,6 +127,8 @@ export default function Sidebar() {
       ), 
       path: '/orders' 
     },
+    { text: 'Offers', icon: <LocalOfferIcon />, path: '/messages' },
+    { text: 'Messages', icon: <MessageIcon />, path: '/simple-messages' },
   ];
 
   return (

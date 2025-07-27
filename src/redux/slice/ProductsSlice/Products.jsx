@@ -44,11 +44,14 @@ export const addProduct = createAsyncThunk(
 
 export const editProduct = createAsyncThunk(
   'products/editProduct',
-  async ({ id, productData }, { rejectWithValue }) => {
+  async ({ id, ...productData }, { rejectWithValue }) => {
     try {
+      console.log('🔍 editProduct thunk called with:', { id, productData });
       const response = await updateProduct(id, productData);
+      console.log('🔍 editProduct response:', response);
       return response;
     } catch (error) {
+      console.error('🔍 editProduct error:', error);
       return rejectWithValue(error);
     }
   }

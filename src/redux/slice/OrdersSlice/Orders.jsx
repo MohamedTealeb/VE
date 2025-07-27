@@ -87,7 +87,10 @@ const ordersSlice = createSlice({
       })
       .addCase(fetchOrders.fulfilled, (state, action) => {
         state.loading = false;
-        state.orders = action.payload;
+        console.log('fetchOrders.fulfilled - action.payload:', action.payload, 'Type:', typeof action.payload, 'Is Array:', Array.isArray(action.payload));
+        // The API now returns the orders array directly
+        state.orders = action.payload || [];
+        console.log('State orders after setting:', state.orders);
         state.success = true;
       })
       .addCase(fetchOrders.rejected, (state, action) => {

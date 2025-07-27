@@ -107,6 +107,8 @@ export default function Users() {
     }));
   };
 
+
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -198,7 +200,7 @@ export default function Users() {
             rowsPerPage={rowsPerPage}
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
-            onDelete={handleDeleteClick}
+                          onDelete={handleDeleteClick}
             isMobile={isMobile}
             isTablet={isTablet}
           />

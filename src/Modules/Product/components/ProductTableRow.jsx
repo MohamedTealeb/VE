@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { TableRow, TableCell, IconButton, Chip, Box, Typography, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Button, useTheme, useMediaQuery } from '@mui/material';
-import { Delete as DeleteIcon } from '@mui/icons-material';
+import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 
 const imageBaseUrl = import.meta.env.VITE_API_URL || 'https://api.ryo-egypt.com';
 
 export default function ProductTableRow({ 
   product, 
-  onDelete, 
+  onDelete,
+  onEdit,
   colorsArray,
   sizesArray,
   categoriesArray
@@ -192,6 +193,18 @@ export default function ProductTableRow({
         </TableCell>
         <TableCell>
           <Box sx={{ display: 'flex', gap: isMobile ? 0.5 : 1 }}>
+            <Tooltip title="Edit">
+              <IconButton 
+                size={isMobile ? "small" : "medium"}
+                onClick={() => onEdit(product)}
+                sx={{ 
+                  color: 'secondary.main',
+                  p: isMobile ? 0.5 : 1
+                }}
+              >
+                <EditIcon fontSize={isMobile ? "small" : "medium"} />
+              </IconButton>
+            </Tooltip>
             <Tooltip title="Delete">
               <IconButton 
                 size={isMobile ? "small" : "medium"}

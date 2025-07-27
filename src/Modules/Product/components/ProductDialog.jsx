@@ -38,12 +38,23 @@ export default function ProductDialog({
   open,
   onClose,
   onSave,
+  selectedProduct = null,
   colors = [],
   sizes = [],
   categories = [],
   loading,
   isMobile
 }) {
+  console.log('🔍 ProductDialog: Component rendered with props:', {
+    open,
+    selectedProduct,
+    selectedProductId: selectedProduct?.id,
+    selectedProductName: selectedProduct?.name,
+    colors: colors?.length,
+    sizes: sizes?.length,
+    categories: categories?.length
+  });
+
   const [formData, setFormData] = React.useState({
     name: '',
     categoryId: '',
@@ -63,24 +74,88 @@ export default function ProductDialog({
 
   // Reset form when dialog opens/closes
   React.useEffect(() => {
+    console.log('🔍 ProductDialog: useEffect triggered', { open, selectedProduct });
+    console.log('🔍 ProductDialog: selectedProduct type:', typeof selectedProduct);
+    console.log('🔍 ProductDialog: selectedProduct keys:', selectedProduct ? Object.keys(selectedProduct) : 'null');
+    
     if (open) {
-      setFormData({
-        name: '',
-        categoryId: '',
-        description: '',
-        price: '',
-        stock: '',
-        target_gender: '',
-        material: '',
-        cover_Image: '',
-        colors: [],
-        sizes: [],
-        images: []
-      });
-      setCoverImagePreview(null);
-      setAdditionalImagesPreview([]);
+      if (selectedProduct && selectedProduct.id) {
+        // تعبئة البيانات عند التعديل
+        console.log('🔍 ProductDialog: Filling form with selected product:', selectedProduct);
+        console.log('🔍 ProductDialog: Product details:', {
+          name: selectedProduct.name,
+          categoryId: selectedProduct.categoryId,
+          description: selectedProduct.discreption || selectedProduct.description,
+          price: selectedProduct.price,
+          stock: selectedProduct.stock,
+          target_gender: selectedProduct.target_gender,
+          material: selectedProduct.Material || selectedProduct.material,
+          cover_Image: selectedProduct.cover_Image,
+          colors: selectedProduct.colors,
+          sizes: selectedProduct.sizes,
+          images: selectedProduct.images
+        });
+        
+        const formDataToSet = {
+          name: selectedProduct.name || '',
+          categoryId: selectedProduct.categoryId?.toString() || '',
+          description: selectedProduct.discreption || selectedProduct.description || '',
+          price: selectedProduct.price?.toString() || '',
+          stock: selectedProduct.stock?.toString() || '',
+          target_gender: selectedProduct.target_gender || '',
+          material: selectedProduct.Material || selectedProduct.material || '',
+          cover_Image: selectedProduct.cover_Image || '',
+          colors: selectedProduct.colors || [],
+          sizes: selectedProduct.sizes || [],
+          images: selectedProduct.images || []
+        };
+        
+        console.log('🔍 ProductDialog: Setting form data:', formDataToSet);
+        setFormData(formDataToSet);
+        
+        // تعيين صورة الغلاف
+        if (selectedProduct.cover_Image) {
+          const coverImageUrl = `${imageBaseUrl}${selectedProduct.cover_Image}`;
+          console.log('🔍 ProductDialog: Setting cover image:', coverImageUrl);
+          console.log('🔍 ProductDialog: imageBaseUrl:', imageBaseUrl);
+          console.log('🔍 ProductDialog: selectedProduct.cover_Image:', selectedProduct.cover_Image);
+          setCoverImagePreview(coverImageUrl);
+        } else {
+          console.log('🔍 ProductDialog: No cover image found');
+          setCoverImagePreview(null);
+        }
+        
+        // تعيين الصور الإضافية
+        if (selectedProduct.images && selectedProduct.images.length > 0) {
+          const additionalImagesUrls = selectedProduct.images.map(img => `${imageBaseUrl}${img}`);
+          console.log('🔍 ProductDialog: Setting additional images:', additionalImagesUrls);
+          console.log('🔍 ProductDialog: selectedProduct.images:', selectedProduct.images);
+          setAdditionalImagesPreview(additionalImagesUrls);
+        } else {
+          console.log('🔍 ProductDialog: No additional images found');
+          setAdditionalImagesPreview([]);
+        }
+      } else {
+        // إعادة تعيين النموذج عند إضافة منتج جديد
+        console.log('🔍 ProductDialog: Resetting form for new product');
+        setFormData({
+          name: '',
+          categoryId: '',
+          description: '',
+          price: '',
+          stock: '',
+          target_gender: '',
+          material: '',
+          cover_Image: '',
+          colors: [],
+          sizes: [],
+          images: []
+        });
+        setCoverImagePreview(null);
+        setAdditionalImagesPreview([]);
+      }
     }
-  }, [open]);
+  }, [open, selectedProduct, imageBaseUrl]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -164,6 +239,10 @@ export default function ProductDialog({
   const sizesArray = Array.isArray(sizes) ? sizes : [];
   const categoriesArray = Array.isArray(categories) ? categories : [];
 
+  console.log('🔍 ProductDialog: Current formData state:', formData);
+  console.log('🔍 ProductDialog: Current coverImagePreview:', coverImagePreview);
+  console.log('🔍 ProductDialog: Current additionalImagesPreview:', additionalImagesPreview);
+
   return (
     <Dialog 
       open={open} 
@@ -176,7 +255,7 @@ export default function ProductDialog({
         p: { xs: 2, sm: 3 },
         pb: { xs: 1, sm: 2 }
       }}>
-        Add New Product
+        {selectedProduct ? 'تعديل المنتج' : 'إضافة منتج جديد'}
       </DialogTitle>
       <form onSubmit={handleSubmit}>
         <DialogContent sx={{ 
@@ -414,7 +493,9 @@ export default function ProductDialog({
                   <ImagePreview 
                     src={coverImagePreview.startsWith('blob:') 
                       ? coverImagePreview 
-                      : `${imageBaseUrl}/${coverImagePreview}`} 
+                      : coverImagePreview.startsWith('http') 
+                        ? coverImagePreview 
+                        : `${imageBaseUrl}${coverImagePreview}`} 
                     alt="Cover Preview" 
                   />
                 )}
@@ -448,7 +529,9 @@ export default function ProductDialog({
                       key={index}
                       src={preview.startsWith('blob:') 
                         ? preview 
-                        : `${imageBaseUrl}/${preview}`}
+                        : preview.startsWith('http') 
+                          ? preview 
+                          : `${imageBaseUrl}${preview}`}
                       alt={`Additional Preview ${index + 1}`}
                       sx={{ width: '100px', height: '100px' }}
                     />
@@ -474,7 +557,7 @@ export default function ProductDialog({
             disabled={loading}
             size={isMobile ? "small" : "medium"}
           >
-            Add
+            {loading ? 'جاري الحفظ...' : (selectedProduct ? 'تحديث المنتج' : 'إضافة المنتج')}
           </Button>
         </DialogActions>
       </form>

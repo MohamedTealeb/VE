@@ -25,7 +25,11 @@ export const getAllOrders = async (filters = {}) => {
         }
       }
     );
-    return response.data;
+    console.log('API response.data:', response.data, 'Type:', typeof response.data, 'Is Array:', Array.isArray(response.data));
+    // Extract the orders array from the response
+    const result = response.data?.orders || [];
+    console.log('API returning orders array:', result);
+    return result;
   } catch (error) {
     if (error.message === 'No authentication token found') {
       throw { message: 'Please login to access this resource' };
@@ -105,7 +109,7 @@ export const deleteOrder = async (id) => {
   try {
     const token = getAuthToken();
     const response = await axios.delete(
-      `${import.meta.env.VITE_BASEURL}/orders/${id}`,
+      `${import.meta.env.VITE_BASEURL}/orders/admin/${id}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
