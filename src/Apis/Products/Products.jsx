@@ -165,7 +165,7 @@ export const updateProduct = async (id, productData) => {
     }
 
     // Log the incoming parameters
-    console.log('Update Product - Parameters:', {
+    console.log('🔍 Update Product - Parameters:', {
       id,
       productData
     });
@@ -217,9 +217,9 @@ export const updateProduct = async (id, productData) => {
       updateData.categoryId = parseInt(productData.categoryId);
     }
 
-    console.log('Update Product - Prepared data:', updateData);
-    console.log('Update Product - categoryId value:', productData.categoryId);
-    console.log('Update Product - categoryId type:', typeof productData.categoryId);
+    console.log('🔍 Update Product - Prepared data:', updateData);
+    console.log('🔍 Update Product - categoryId value:', productData.categoryId);
+    console.log('🔍 Update Product - categoryId type:', typeof productData.categoryId);
 
     // Make the API request
     const response = await api.patch(`/products/${id}`, updateData, {

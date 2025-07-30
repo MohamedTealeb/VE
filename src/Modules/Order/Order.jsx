@@ -11,6 +11,7 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
+import DeleteConfirmation from '../Messages/components/DeleteConfirmation';
 
 export default function Order() {
   const dispatch = useDispatch();
@@ -31,6 +32,8 @@ export default function Order() {
   const [showFilters, setShowFilters] = React.useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = React.useState(false);
   const [orderToDelete, setOrderToDelete] = React.useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [orderToDeleteFromTable, setOrderToDeleteFromTable] = React.useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -125,6 +128,23 @@ export default function Order() {
     setConfirmDialogOpen(true);
   };
 
+  const handleDeleteFromTable = (orderId) => {
+    const order = orders.find(o => o.id === orderId);
+    setOrderToDeleteFromTable(order);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteOrder = async (orderId) => {
+    try {
+      await dispatch(deleteOrderById(orderId)).unwrap();
+      toast.success('تم حذف الطلب بنجاح');
+      dispatch(fetchOrders());
+    } catch (error) {
+      console.error('Delete order error:', error);
+      toast.error(error.message || 'فشل في حذف الطلب');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -210,6 +230,7 @@ export default function Order() {
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
             onView={handleViewOrder}
+            onDelete={handleDeleteFromTable}
           />
         </Paper>
 
@@ -243,6 +264,27 @@ export default function Order() {
             </Button>
           </DialogActions>
         </Dialog>
+
+        <DeleteConfirmation
+          open={deleteDialogOpen}
+          onClose={() => {
+            setDeleteDialogOpen(false);
+            setOrderToDeleteFromTable(null);
+          }}
+          onConfirm={async () => {
+            if (orderToDeleteFromTable) {
+              await handleDeleteOrder(orderToDeleteFromTable.id);
+            }
+            setDeleteDialogOpen(false);
+            setOrderToDeleteFromTable(null);
+          }}
+          title="تأكيد حذف الطلب"
+          message="هل أنت متأكد من حذف هذا الطلب؟"
+          itemName={orderToDeleteFromTable ? 
+            `طلب رقم ${orderToDeleteFromTable.id} - ${orderToDeleteFromTable.user?.email || 'بريد إلكتروني غير متوفر'}` : 
+            ''
+          }
+        />
       </div>
     </>
   );

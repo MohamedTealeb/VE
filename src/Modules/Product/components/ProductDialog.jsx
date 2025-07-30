@@ -96,6 +96,13 @@ export default function ProductDialog({
           images: selectedProduct.images
         });
         
+        // معالجة colors و sizes لاستخراج IDs فقط
+        const colorIds = selectedProduct.colors ? selectedProduct.colors.map(c => c.colorId) : [];
+        const sizeIds = selectedProduct.sizes ? selectedProduct.sizes.map(s => s.sizeId) : [];
+        
+        console.log('🔍 ProductDialog: Extracted colorIds:', colorIds);
+        console.log('🔍 ProductDialog: Extracted sizeIds:', sizeIds);
+        
         const formDataToSet = {
           name: selectedProduct.name || '',
           categoryId: selectedProduct.categoryId?.toString() || '',
@@ -105,12 +112,12 @@ export default function ProductDialog({
           target_gender: selectedProduct.target_gender || '',
           material: selectedProduct.Material || selectedProduct.material || '',
           cover_Image: selectedProduct.cover_Image || '',
-          colors: selectedProduct.colors || [],
-          sizes: selectedProduct.sizes || [],
+          colors: colorIds,
+          sizes: sizeIds,
           images: selectedProduct.images || []
         };
         
-        console.log('🔍 ProductDialog: Setting form data:', formDataToSet);
+        console.log('🔍 ProductDialog: Setting form data:', JSON.stringify(formDataToSet, null, 2));
         setFormData(formDataToSet);
         
         // تعيين صورة الغلاف
@@ -127,7 +134,7 @@ export default function ProductDialog({
         
         // تعيين الصور الإضافية
         if (selectedProduct.images && selectedProduct.images.length > 0) {
-          const additionalImagesUrls = selectedProduct.images.map(img => `${imageBaseUrl}${img}`);
+          const additionalImagesUrls = selectedProduct.images.map(img => `${imageBaseUrl}${img.url}`);
           console.log('🔍 ProductDialog: Setting additional images:', additionalImagesUrls);
           console.log('🔍 ProductDialog: selectedProduct.images:', selectedProduct.images);
           setAdditionalImagesPreview(additionalImagesUrls);
@@ -159,10 +166,15 @@ export default function ProductDialog({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    console.log('🔍 handleChange called:', { name, value });
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [name]: value
+      };
+      console.log('🔍 Updated formData:', newData);
+      return newData;
+    });
   };
 
   const handleCoverImageChange = (e) => {
@@ -191,6 +203,9 @@ export default function ProductDialog({
   const handleSubmit = (e) => {
     e.preventDefault();
     try {
+      console.log('🔍 handleSubmit called with formData:', formData);
+      console.log('🔍 selectedProduct:', selectedProduct);
+      
       // Format the data before sending
       const formattedData = {
         ...formData,
@@ -214,7 +229,7 @@ export default function ProductDialog({
       });
 
       // Log the formatted data for debugging
-      console.log('Formatted data being sent:', formattedData);
+      console.log('🔍 Formatted data being sent:', formattedData);
       
       // Validate the formatted data
       if (!formattedData || typeof formattedData !== 'object') {
@@ -239,9 +254,11 @@ export default function ProductDialog({
   const sizesArray = Array.isArray(sizes) ? sizes : [];
   const categoriesArray = Array.isArray(categories) ? categories : [];
 
-  console.log('🔍 ProductDialog: Current formData state:', formData);
+  console.log('🔍 ProductDialog: Current formData state:', JSON.stringify(formData, null, 2));
   console.log('🔍 ProductDialog: Current coverImagePreview:', coverImagePreview);
   console.log('🔍 ProductDialog: Current additionalImagesPreview:', additionalImagesPreview);
+  console.log('🔍 ProductDialog: selectedProduct prop:', selectedProduct);
+  console.log('🔍 ProductDialog: open prop:', open);
 
   return (
     <Dialog 

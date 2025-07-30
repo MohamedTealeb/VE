@@ -16,6 +16,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { createNewOffer, fetchOffers, updateExistingOffer } from '../../../redux/slice/OffersSlice/Offers';
 import { createNewMessage } from '../../../redux/slice/MessagesSlice/Messages';
+import { fetchProducts } from '../../../redux/slice/ProductsSlice/Products';
 import toast from 'react-hot-toast';
 
 export default function AddOfferDialog({
@@ -25,6 +26,8 @@ export default function AddOfferDialog({
 }) {
   const dispatch = useDispatch();
   const messagesList = useSelector(state => state.messages.messages);
+  const { products } = useSelector(state => state.products);
+  const imageBaseUrl = 'https://api.ryo-egypt.com';
   const [formData, setFormData] = React.useState({
     title: '',
     description: '',
@@ -34,6 +37,13 @@ export default function AddOfferDialog({
     expiresAt: ''
   });
   const [loading, setLoading] = React.useState(false);
+
+  // جلب المنتجات عند فتح النموذج
+  React.useEffect(() => {
+    if (open) {
+      dispatch(fetchProducts());
+    }
+  }, [open, dispatch]);
 
   // تعبئة البيانات عند فتح النموذج للتعديل
   React.useEffect(() => {
@@ -88,8 +98,8 @@ export default function AddOfferDialog({
       toast.error('نسبة الخصم مطلوبة ويجب أن تكون رقم');
       return;
     }
-    if (!formData.productId || isNaN(formData.productId) || Number(formData.productId) <= 0) {
-      toast.error('رقم المنتج مطلوب ويجب أن يكون رقم أكبر من 0');
+    if (!formData.productId || formData.productId === '') {
+      toast.error('يجب اختيار منتج');
       return;
     }
     if (!formData.expiresAt) {
@@ -108,10 +118,12 @@ export default function AddOfferDialog({
         title: formData.title.trim(),
         description: formData.description.trim() || "",
         discount: Number(formData.discount),
-        productId: Number(formData.productId),
+        productId: formData.productId ? Number(formData.productId) : 0,
         messageId: formData.messageId ? Number(formData.messageId) : 0,
         expiresAt: formattedExpiresAt
       };
+      
+      console.log('🔍 offerData after conversion:', offerData);
       
       // تحقق إضافي من productId
       if (!offerData.productId || offerData.productId <= 0) {
@@ -130,7 +142,8 @@ export default function AddOfferDialog({
         descriptionLength: offerData.description.length
       });
       
-      console.log('Sending offer data:', offerData);
+      console.log('🔍 Sending offer data:', offerData);
+      console.log('🔍 Raw formData:', formData);
       console.log('Data type check:', {
         title: typeof offerData.title,
         description: typeof offerData.description,
@@ -246,15 +259,45 @@ export default function AddOfferDialog({
             fullWidth
             required
           />
-          <TextField
-            label="رقم المنتج (Product ID) *"
-            type="number"
-            value={formData.productId}
-            onChange={handleInputChange('productId')}
-            placeholder="أدخل رقم المنتج المرتبط بالعرض"
-            fullWidth
-            required
-          />
+          <FormControl fullWidth required>
+            <InputLabel>المنتج *</InputLabel>
+            <Select
+              value={formData.productId}
+              onChange={handleInputChange('productId')}
+              label="المنتج *"
+              displayEmpty
+            >
+              <MenuItem value="">
+                <em>اختر منتج</em>
+              </MenuItem>
+              {products && products.map((product) => (
+                <MenuItem key={product.id} value={product.id}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                    <img
+                      className="MuiBox-root css-ke6aw4"
+                      src={`${imageBaseUrl}${product.cover_Image}`}
+                      alt={product.name}
+                      style={{
+                        width: 50,
+                        height: 50,
+                        objectFit: 'cover',
+                        borderRadius: 4,
+                        border: '1px solid #e0e0e0'
+                      }}
+                    />
+                    <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                        {product.name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        السعر: {product.price} - المخزون: {product.stock}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <FormControl fullWidth>
             <InputLabel id="message-select-label">اختر الرسالة المرتبطة (اختياري)</InputLabel>
             <Select

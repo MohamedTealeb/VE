@@ -1,14 +1,16 @@
 import * as React from 'react';
 import {
   Table, TableContainer, TableHead, TableBody, TableRow, TableCell,
-  TablePagination, IconButton, Chip
+  TablePagination, IconButton, Chip, Box, Typography
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
 const columns = [
   { id: 'id', label: 'Message ID', minWidth: 100 },
   { id: 'content', label: 'Content', minWidth: 200 },
+  { id: 'source', label: 'Source', minWidth: 120 },
   { id: 'productId', label: 'Product ID', minWidth: 120 },
   { id: 'productName', label: 'Product Name', minWidth: 150 },
   { id: 'productPrice', label: 'Product Price', minWidth: 120 },
@@ -35,6 +37,12 @@ export default function SimpleMessagesTable({
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
 
+  // Function to check if message comes from an offer
+  const isFromOffer = (message) => {
+    // Check if message has offer-related fields or if it's linked to an offer
+    return message.offerId || message.title || message.discount || message.expiresAt;
+  };
+
   return (
     <>
       <TableContainer sx={{ maxHeight: 600 }}>
@@ -51,7 +59,17 @@ export default function SimpleMessagesTable({
           <TableBody>
             {messages?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map(message => (
-                <TableRow hover tabIndex={-1} key={message.id}>
+                <TableRow 
+                  hover 
+                  tabIndex={-1} 
+                  key={message.id}
+                  sx={{
+                    backgroundColor: isFromOffer(message) ? '#e8f5e8' : 'inherit',
+                    '&:hover': {
+                      backgroundColor: isFromOffer(message) ? '#c8e6c9' : undefined
+                    }
+                  }}
+                >
                   {columns.map(column => {
                     if (column.id === 'actions') {
                       return (
@@ -68,7 +86,58 @@ export default function SimpleMessagesTable({
                     if (column.id === 'content') {
                       return (
                         <TableCell key={column.id} align={column.align || 'left'}>
-                          {truncateText(message.content)}
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            {isFromOffer(message) && (
+                              <Chip
+                                label="OFFER"
+                                color="success"
+                                size="small"
+                                variant="filled"
+                                sx={{ 
+                                  fontSize: '0.6rem',
+                                  fontWeight: 'bold',
+                                  alignSelf: 'flex-start'
+                                }}
+                              />
+                            )}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              {isFromOffer(message) && (
+                                <Chip
+                                  icon={<LocalOfferIcon />}
+                                  label="From Offer"
+                                  color="success"
+                                  size="small"
+                                  variant="outlined"
+                                  sx={{ fontSize: '0.7rem' }}
+                                />
+                              )}
+                              <Typography variant="body2">
+                                {truncateText(message.content)}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </TableCell>
+                      );
+                    }
+                    if (column.id === 'source') {
+                      return (
+                        <TableCell key={column.id} align={column.align || 'left'}>
+                          {isFromOffer(message) ? (
+                            <Chip
+                              icon={<LocalOfferIcon />}
+                              label="Offer"
+                              color="success"
+                              size="small"
+                              variant="filled"
+                            />
+                          ) : (
+                            <Chip
+                              label="Direct"
+                              color="primary"
+                              size="small"
+                              variant="outlined"
+                            />
+                          )}
                         </TableCell>
                       );
                     }

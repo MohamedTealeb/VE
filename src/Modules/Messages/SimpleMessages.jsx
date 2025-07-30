@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { fetchMessages, deleteMessageById, createNewMessage } from '../../redux/slice/MessagesSlice/Messages';
+import { fetchProducts } from '../../redux/slice/ProductsSlice/Products';
 import AddIcon from '@mui/icons-material/Add';
 import MessagesTable from './components/SimpleMessagesTable';
 import SimpleMessageDetailsDialog from './components/SimpleMessageDetailsDialog';
@@ -15,11 +16,19 @@ import DialogContent from '@mui/material/DialogContent';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import DeleteConfirmation from './components/DeleteConfirmation';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import Card from '@mui/material/Card';
+import CardMedia from '@mui/material/CardMedia';
+import CardContent from '@mui/material/CardContent';
 
 export default function SimpleMessages() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { messages, loading, error } = useSelector((state) => state.messages);
+  const { products } = useSelector((state) => state.products);
   
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
@@ -33,6 +42,7 @@ export default function SimpleMessages() {
     productId: ''
   });
   const [submitLoading, setSubmitLoading] = React.useState(false);
+  const imageBaseUrl = 'https://api.ryo-egypt.com';
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -42,6 +52,7 @@ export default function SimpleMessages() {
       return;
     }
     dispatch(fetchMessages());
+    dispatch(fetchProducts());
   }, [dispatch, navigate]);
 
   useEffect(() => {
@@ -113,9 +124,11 @@ export default function SimpleMessages() {
   };
 
   const handleInputChange = (field) => (event) => {
+    const value = event.target.value;
+  
     setFormData(prev => ({
       ...prev,
-      [field]: event.target.value
+      [field]: value
     }));
   };
 
@@ -130,7 +143,7 @@ export default function SimpleMessages() {
       
       const messageData = {
         content: formData.content.trim(),
-        productId: formData.productId ? Number(formData.productId) : 0,
+        productId: formData.productId && formData.productId !== '' ? Number(formData.productId) : 0,
         messageId: 0
       };
       
@@ -229,14 +242,45 @@ export default function SimpleMessages() {
                 fullWidth
                 required
               />
-              <TextField
-                label="رقم المنتج (اختياري)"
-                type="number"
-                value={formData.productId}
-                onChange={handleInputChange('productId')}
-                placeholder="اترك فارغ أو أدخل رقم المنتج"
-                fullWidth
-              />
+              <FormControl fullWidth>
+                <InputLabel>المنتج (اختياري)</InputLabel>
+                <Select
+                  value={formData.productId}
+                  onChange={handleInputChange('productId')}
+                  label="المنتج (اختياري)"
+                  displayEmpty
+                >
+                  <MenuItem value="">
+                    <em>لا يوجد منتج</em>
+                  </MenuItem>
+                  {products && products.map((product) => (
+                    <MenuItem key={product.id} value={product.id}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                        <img
+                          className="MuiBox-root css-ke6aw4"
+                          src={`${imageBaseUrl}${product.cover_Image}`}
+                          alt={product.name}
+                          style={{
+                            width: 50,
+                            height: 50,
+                            objectFit: 'cover',
+                            borderRadius: 4,
+                            border: '1px solid #e0e0e0'
+                          }}
+                        />
+                        <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                            {product.name}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            السعر: {product.price} - المخزون: {product.stock}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Box>
           </DialogContent>
           <DialogActions>

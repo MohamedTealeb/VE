@@ -1,10 +1,11 @@
 import * as React from 'react';
 import {
   Table, TableContainer, TableHead, TableBody, TableRow, TableCell,
-  TablePagination, IconButton, Chip
+  TablePagination, IconButton, Chip, Box
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
 const columns = [
   { id: 'id', label: 'Order ID', minWidth: 100 },
@@ -12,7 +13,7 @@ const columns = [
   { id: 'user', label: 'Email', minWidth: 200 },
   { id: 'orderPhone', label: 'Order Phone', minWidth: 150 },
   { id: 'userPhone', label: 'User Phone', minWidth: 150 },
-
+  { id: 'offers', label: 'Offers', minWidth: 100 },
   { id: 'status', label: 'Status', minWidth: 120 },
   { id: 'actions', label: 'Actions', minWidth: 120 },
 ];
@@ -66,6 +67,25 @@ export default function OrderTable({
                           <IconButton color="error" onClick={() => onDelete(order.id)} size="small">
                             <DeleteIcon />
                           </IconButton>
+                        </TableCell>
+                      );
+                    }
+                    if (column.id === 'offers') {
+                      const hasOffers = order.items?.some(item => item.offerId);
+                      const offerCount = order.items?.filter(item => item.offerId).length || 0;
+                      return (
+                        <TableCell key={column.id} align={column.align || 'left'}>
+                          {hasOffers ? (
+                            <Chip
+                              icon={<LocalOfferIcon />}
+                              label={`${offerCount} offer(s)`}
+                              color="success"
+                              size="small"
+                              variant="filled"
+                            />
+                          ) : (
+                            <span style={{ color: '#999', fontStyle: 'italic' }}>No offers</span>
+                          )}
                         </TableCell>
                       );
                     }
